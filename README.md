@@ -36,6 +36,10 @@ Batt-o-matic is a Django + MariaDB web app for maintaining a rechargeable batter
 - Reverse proxy support (Nginx)
 - Installer Script for fast testing / development
 
+## For the next version
+- Direct Battery management with credentials
+- Edge-TX log format importer for flight logs (I hate Betaflight Blackbox Explorer and BBL format!)
+
 ## Database models
 
 - `Battery`
@@ -47,18 +51,24 @@ The Django model names use normal Django naming, but the fields match the reques
 ## Prerequisites
 
 - Knowledge of Linux and Docker environments and basic command line usage
-- Docker and Docker Compose
-- MariaDB container (Working example is on Docker-compose.example)
-- A MariaDB database and user for Batt-o-matic
+- Knowledge and some hint of common sense to not put his piece of s**t to your production environment!
 
 ## Setup
 
 You can use install.sh for semi-automated deployment. if your environment does not have any docker containers before.
 I have tested it with Virtualbox Debian for several times and seems to work OK
 
-Or you can do all manually.
+install.sh ask you about:
 
-### Manual setup
+- Directory to install (will make it)
+- Mysql Root Passwd (plain text, for .env file)
+- Battomatic DB Name
+- Battomatic DB User
+- Battomatic DB Pass
+
+Or you die like a man ans do all manually.
+
+## Manual setup
 
 Let's assume some things for the directories:
 
@@ -70,15 +80,16 @@ Install Docker (Debian here, so adjust accordinly)
 curl -fsSL https://get.docker.com | sh
 sudo usermod -aG docker $USER
 ```
-
-Directory structure is something like this
+- Relog/Reboot the machine for docker group rights 
+- Directory structure is something like this
 ```
 /home/user/docker
   mariadb/
   battomatic/
+  nginx/
 .env
 docker-compose.yml
-dockerfile
+battomatic_dockerfile
 
 ```
 
@@ -86,42 +97,49 @@ dockerfile
 cd
 mkdir docker
 cd git/battomatic
-cp .env ~/docker/.env
-cp docker-compose.yml ~/docker/docker-compose
-cp dockerfile ~/docker/dockerfile
+cp .env.template ~/docker/.env
+cp docker-compose.yml.template ~/docker/docker-compose.yml
+cp battomatic_dockerfile ~/docker/
 cp battomatic/ ~/docker/ -r
 
 nano /opt/.env
+
+TIMEZONE=<your_timezone>
+MYSQL_ROOT_PASSWORD=<mysql_root_pass_for_container>
+DJANGO_BATTOMATIC_SECRET_KEY=<django secret key at least 64 characters a-zA-Z0-1!"#%&/() you understand, avoid $ at any secrets>
+DJANGO_BATTOMATIC_SITE_URL=http://battomatic.yourhost.domain
+DJANGO_BATTOMATIC_DEBUG=False
+DJANGO_BATTOMATIC_ALLOWED_HOSTS=*
+DJANGO_BATTOMATIC_CSRF_TRUSTED_ORIGINS=http://localhost:3005
+DJANGO_BATTOMATIC_DB=battomatic
+DJANGO_BATTOMATIC_DB_USER=battomatic
+DJANGO_BATTOMATIC_DB_PASS=Kissa123
 ```
-- Set at least `MYSQL_ROOT_PASSWORD` and `TZ` on .env.
-- Start the Mariadb and Adminer
+- Save the .env and edit docker-compose.yml next
+- Change all ```${TARGET_DIR_ABS}``` lines suitable your paths and save the file.
+- Pull and start the containers
 
 ```bash
-docker compose up mariadb adminer -d
+docker compose up mariadb adminer nginx-proxy -d
 ```
 - Check that Mariadb container starts and running
 
 ```
 docker compose logs mariadb --follow
+docker compose exec -it mariadb mariadb -u root -h mariadb --password=yourmysqrootpasswd
 ```
-- Try to login mariadb with adminer ```http://localhost:8080``` user is root
+- Try also login mariadb with adminer ```http://localhost:8080``` user is root
 - If You get successfull access then let's make some database and user with proper password (Common finnish password is that Kissa123)
 - Use that SQL command -link top left to enter following commands
 
 ```sql
 CREATE DATABASE battomatic CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-CREATE USER 'battomatic'@'localhost' IDENTIFIED BY 'Kissa123';
 CREATE USER 'battomatic'@'%' IDENTIFIED BY 'Kissa123';
 GRANT ALL PRIVILEGES ON battomatic.* TO 'battomatic'@'%';
 FLUSH PRIVILEGES;
 ```
 
-- Look at battomatic\settings.py and setup the MariaDB part below the line 55 with correct values
-- Adjust docker-compose paths suitable for your needs and make sure to take changes for dockerfile accordily
-- Adjust also port if 3005 is not credible or sexy enough
-- I have all docker containers on /opt and there's some permission shenanigans for that. It is safe to just run this in your home directory too.
-
-Then try to build and start the app:
+Then try to build and finally start the app:
 
 ```bash
 docker compose build batt-o-matic
@@ -129,10 +147,12 @@ docker compose up batt-o-matic -d
 ```
 All looks good and build did not crash? Wow! Just Wow!
 
-## Create admin user
+## Make migrations and Create admin user
 
 ```bash
-docker compose exec batt-o-matic python manage.py createsuperuser
+docker compose exec -it batt-o-matic python manage.py makemigrations
+docker compose exec -it batt-o-matic python manage.py migrate
+docker compose exec -it batt-o-matic python manage.py createsuperuser
 ```
 For common troubleshooting, you can Follow the container log. This assumes that build is successfull and container is running:
 
@@ -146,6 +166,8 @@ http://localhost:3005/admin/
 ```
 Add at least one battery before creating charge events.
 
+You need to add A-record for that battomatic.host.domain to your router DNS if you want to use that kind of address.
+
 ## Normal workflow
 
 1. Add batteries in Django Admin.
@@ -153,30 +175,13 @@ Add at least one battery before creating charge events.
 3. Login with a Django user to create or edit charge events.
 4. Select a battery, then fill optional cell voltages and notes.
 5. Review voltage trends from the Voltage Chart page.
+6. Print the Battery "Quick Charge" stickers and put them to your batteries.
+7. Use QR-code on field with your phone if you have secure connection to your environment via Tailscale etc.
 
-## Development without Docker
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r battomatic_requirements.txt
-cp .env.example .env
-python manage.py migrate
-python manage.py runserver 0.0.0.0:3005
-```
-
-For local non-Docker development you still need MariaDB reachable with the `.env` settings.
-
-## Notes for version 1.0
-
-- Batteries are intentionally maintained through Django Admin only.
-- Charge events are maintained through the normal UI.
-- Public pages are read-only.
-- Styling uses the Tailwind CDN for a simple starting point. For production hardening, replace it with a compiled Tailwind build step.
 
 ## DISCLAIMER
 
-This code has been sparred with ChatGBT and published as is. I take no responsibility for any damages, wrong lottery numbers or anything else you might accuse me of (including the previous ice age!).
+*DO NOT PUT THIS PIECE OF S**T DIRECTLY ON PUBLIC INTERNET! This code has been sparred with ChatGBT and published as is. I take no responsibility for any damages, wrong lottery numbers or anything else you might accuse me of (including the previous ice age!).
 
 Taillight warranty is on!
 
