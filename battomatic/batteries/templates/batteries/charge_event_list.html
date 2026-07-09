@@ -1,9 +1,18 @@
 {% extends 'batteries/base.html' %}
 {% block content %}
-<div class="flex items-end justify-between mb-6"><div>
-<h1 class="text-3xl font-bold">Charge Events</h1>
-<p class="text-slate-400">Public log view. Login required for editing.</p></div>{% if user.is_authenticated %}<a class="btn" href="{% url 'charge_event_create' %}">New Event</a>{% endif %}</div>
+<div class="mb-6">
+  <h1 class="text-3xl font-bold">
+    Charge Events
+  </h1>
 
+  <div class="flex flex-wrap gap-2 mt-4 border-t border-b border-slate-200 py-3">
+    {% if user.is_authenticated %}
+      <a href="{% url 'charge_event_create' %}" class="btn px-3 py-1 text-sm">
+        New Charge Event
+      </a>
+    {% endif %}
+  </div>
+</div>
 <form method="get" class="card mb-6 flex gap-3 items-end">
 <label class="block flex-1"><span class="label">Filter by battery</span>
 <select name="battery" class="form-control"><option value="">All batteries</option>{% for battery in all_batteries %}<option value="{{ battery.id }}" {% if selected_battery == battery.id|stringformat:'s' %}selected{% endif %}>{{ battery.label }}</option>{% endfor %}</select></label>
