@@ -141,12 +141,12 @@ if docker inspect -f '{{.State.Running}}' batt-o-matic 2>/dev/null | grep -q tru
     docker compose exec -it batt-o-matic python manage.py migrate
     docker compose exec -it batt-o-matic python manage.py createsuperuser
     echo    
-    echo -e "\e[35mAll Done Check the connections for\nhttp://$HOSTNAME:3005/admin\nhttp://battomatic.$HOSTNAME/admin\e[0m"
+    echo -e "\e[35mAll Done Check the connections for\nhttp://$HOSTNAME:3005/\nhttp://battomatic.$HOSTNAME/\e[0m"
     echo
-    echo -e "\e[35mIf all went right, you can add your first battery on the database.\n\nBTW! You need to add A-record for that battomatic.$HOSTNAME to your router DNS\e[0m"
+    echo -e "\e[35mIf all went right, you can login and add your first battery on the database.\n\nBTW! You need to add atleast A-record for that battomatic.$HOSTNAME to your router DNS\e[0m"
 else
     echo
-    echo -e "\e[31m Something came up off the ass of Timo\n\n Check with docker compose logs batt-o-matic --follow\n\nWhat it is complaining this time...\e[0m"
+    echo -e "\e[31m Something came up off the ass of Timo\n\n Check with docker compose logs batt-o-matic --follow\nWhat it is complaining this time...\e[0m"
     exit 1
 fi
 
