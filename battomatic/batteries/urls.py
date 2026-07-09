@@ -4,6 +4,8 @@ from . import views
 urlpatterns = [
     path('', views.BatteryListView.as_view(), name='battery_list'),
     path('batteries/', views.BatteryListView.as_view(), name='battery_list'),
+    path('batteries/new/', views.BatteryCreateView.as_view(), name='battery_create'),
+    path('batteries/<int:pk>/edit/', views.BatteryUpdateView.as_view(), name='battery_update'),                
     path('batteries/<int:pk>/', views.BatteryDetailView.as_view(), name='battery_detail'),    
     path('batteries/<int:pk>/quick-charge/', views.BatteryQuickChargeView.as_view(), name='battery_quick_charge'),
     path('batteries/<int:pk>/qr/', views.battery_qr_code, name='battery_qr_code'),
