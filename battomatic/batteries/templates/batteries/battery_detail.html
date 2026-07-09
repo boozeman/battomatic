@@ -1,106 +1,289 @@
 {% extends 'batteries/base.html' %}
+
 {% block content %}
-<h1 class="text-3xl font-bold mb-6">{{ battery.label }}</h1>
-<div class="flex justify-between items-center mb-4">
 
-    <div>
-        <h1 class="text-3xl font-bold">
-            {{ battery.label }}
-        </h1>
+<div class="mb-6">
+  <h1 class="text-3xl font-bold">
+    {{ battery.label }}
+  </h1>
 
-        {% if user.is_authenticated %}
-        <div class="flex flex-wrap gap-2 mt-3">
+  <div class="flex flex-wrap gap-2 mt-4 border-t border-b border-slate-200 py-3">
+    {% if user.is_authenticated %}
+      <a
+        href="{% url 'battery_quick_charge' battery.pk %}"
+        class="btn px-3 py-1 text-sm"
+      >
+        Quick Charge
+      </a>
 
-            <a href="{% url 'battery_update' battery.pk %}"
-               class="btn px-3 py-1 text-sm">
-                Edit
-            </a>
+      <a
+        href="{% url 'battery_update' battery.pk %}"
+        class="btn-secondary px-3 py-1 text-sm"
+      >
+        Edit
+      </a>
+    {% endif %}
 
-            <a href="{% url 'battery_quick_charge' battery.pk %}"
-               class="btn px-3 py-1 text-sm">
-                Quick Charge
-            </a>
+    <a
+      href="{% url 'battery_qr_code' battery.pk %}"
+      class="btn-secondary px-3 py-1 text-sm"
+      download="battery-{{ battery.pk }}-qr.png"
+    >
+      Download QR
+    </a>
 
-            <a href="{% url 'battery_qr_code' battery.pk %}"
-               class="btn px-3 py-1 text-sm"
-               download="battery-{{ battery.pk }}-qr.png">
-                Download QR
-            </a>
+    <a
+      href="{% url 'battery_label_pdf' battery.pk %}"
+      class="btn-secondary px-3 py-1 text-sm"
+      download="battery-{{ battery.pk }}-label.pdf"
+    >
+      Print Label
+    </a>
 
-            <a href="{% url 'battery_label_pdf' battery.pk %}"
-               class="btn px-3 py-1 text-sm"
-               download="battery-{{ battery.pk }}-label.pdf">
-                Print Label
-            </a>
+    <a
+      href="{% url 'battery_list' %}"
+      class="btn-secondary px-3 py-1 text-sm"
+    >
+      Back
+    </a>
+  </div>
+</div>
 
-        </div>
-        {% endif %}
+<div class="card mb-6">
+  <div class="flex flex-col lg:flex-row gap-6 justify-between">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 flex-1">
+      <div class="metric">State<span>{{ battery.get_state_display }}</span></div>
+      <div class="metric">Health
+        <span class="
+          font-bold
+          {% if battery.health == 'Excellent' %}
+            text-green-600
+          {% elif battery.health == 'Good' %}
+            text-lime-600
+          {% elif battery.health == 'Fair' %}
+            text-yellow-600
+          {% elif battery.health == 'Aging' %}
+            text-orange-600
+          {% elif battery.health == 'Needs Attention' %}
+            text-red-600
+          {% else %}
+            text-slate-600
+          {% endif %}
+        ">
+          {{ battery.health }}
+        </span>
+      </div>
+
+      <div class="metric">Chemistry<span>{{ battery.get_chemistry_display }}</span></div>
+      <div class="metric">Connector<span>{{ battery.get_connector_display }}</span></div>
+      <div class="metric">Purchase Date<span>{{ battery.purchase_date }}</span></div>
+      <div class="metric">Manufacturer<span>{{ battery.manufacturer }}</span></div>
+      <div class="metric">Model<span>{{ battery.model }}</span></div>
+      <div class="metric">Cell Count<span>{{ battery.cell_count }}S</span></div>
+      <div class="metric">Capacity<span>{{ battery.capacity_mah }} mAh</span></div>
+      <div class="metric">C Rating<span>{{ battery.c_rating }}</span></div>
+      <div class="metric">Weight<span>{{ battery.weight_g|default:"—" }} g</span></div>
+      <div class="metric">Charge Cycles<span>{{ charge_cycle_count }}</span></div>
+      <div class="metric">Storage Events<span>{{ storage_count }}</span></div>
+      <div class="metric">Balance Events<span>{{ balance_count }}</span></div>
+      <div class="metric">Discharge Events<span>{{ discharge_count }}</span></div>
+
+      <div class="metric">
+        Last Charge
+        <span>
+          {% if last_charge %}
+            {{ last_charge.date }}
+          {% else %}
+            —
+          {% endif %}
+        </span>
+      </div>
+
+      <div class="metric">
+        Last Storage
+        <span>
+          {% if last_storage %}
+            {{ last_storage.date }}
+          {% else %}
+            —
+          {% endif %}
+        </span>
+      </div>
     </div>
 
-</div>
-
-<div class="grid md:grid-cols-3 gap-4 mb-8">
-  <div class="metric">State<span>{{ battery.get_state_display }}</span></div>
-  <div class="metric">Chemistry<span>{{ battery.get_chemistry_display }}</span></div>
-  <div class="metric">Manufacturer<span>{{ battery.manufacturer }}</span></div>
-  <div class="metric">Connector<span>{{ battery.get_connector_display }}</span></div>
-  <div class="metric">Cells<span>{{ battery.cell_count }}</span></div>
-  <div class="metric">Weight<span>{% if battery.weight_g %} {{ battery.weight_g }} g {% else %} - {% endif %}</span></div>
-  <div class="metric">Charge cycles<span>{{ charge_cycle_count }}</span></div>
-  <div class="metric">Storage events<span>{{ storage_count }}</span></div>
-  <div class="metric">Balance events<span>{{ balance_count }}</span></div>
-  <div class="metric">Discharge events<span>{{ discharge_count }}</span></div>  
-  <div class="metric">
-    Last charge
-    <span>
-      {% if last_charge %}
-        {{ last_charge.date }}
-      {% else %}
-        —
-      {% endif %}
-    </span>
-  </div>
-
-  <div class="metric">
-    Last storage
-    <span>
-      {% if last_storage %}
-        {{ last_storage.date }}
-      {% else %}
-        —
-      {% endif %}
-    </span>
-  </div>
-  <div class="metric">
-    Battery health
-  <span class="
-    font-bold
-    {% if battery.health == 'Excellent' %}
-      text-green-600
-    {% elif battery.health == 'Good' %}
-      text-lime-600
-    {% elif battery.health == 'Fair' %}
-      text-yellow-600
-    {% elif battery.health == 'Aging' %}
-      text-orange-600
-    {% elif battery.health == 'Needs Attention' %}
-      text-red-600
-    {% else %}
-      text-slate-600
-    {% endif %}
-  ">
-    {% if battery.health == 'Excellent' %}🟢{% endif %}
-    {% if battery.health == 'Good' %}🟢{% endif %}
-    {% if battery.health == 'Fair' %}🟡{% endif %}
-    {% if battery.health == 'Aging' %}🟠{% endif %}
-    {% if battery.health == 'Needs Attention' %}🔴{% endif %}
-    {{ battery.health }}
-    </span>
+    <div class="flex lg:block justify-center">
+      <img
+        src="{% url 'battery_qr_code' battery.pk %}"
+        alt="QR code for {{ battery.label }}"
+        class="w-24 h-24 border rounded bg-white p-2"
+      >
+    </div>
   </div>
 </div>
 
-<div class="card overflow-x-auto">
-<table class="table"><thead><tr><th>Date</th><th>Event</th><th>Current</th><th>Voltages</th><th>Notes</th><th></th></tr></thead><tbody>
-{% for e in battery.charge_events.all %}<tr><td>{{ e.date }}</td><td>{{ e.get_event_display }}</td><td>{% if e.charge_current_a %} {{ e.charge_current_a }} A {% else %} - {% endif %}</td><td>{% for v in e.cell_voltages.all %}<span class="pill">C{{ v.cell_index }}: {{ v.voltage|default:'—' }}</span>{% endfor %}</td><td>{{ e.notes|default:'—' }}</td><td>{% if user.is_authenticated %}<a class="link" href="{% url 'charge_event_update' e.id %}">Edit</a>{% endif %}</td></tr>{% empty %}<tr><td colspan="5" class="text-center text-slate-400 py-8">No charge events.</td></tr>{% endfor %}
-</tbody></table></div>
+<div class="card mb-6">
+  <h2 class="text-xl font-bold mb-4">Cell Voltage History</h2>
+
+  {% if chart_events %}
+    <canvas id="cellVoltageChart" height="110"></canvas>
+    {{ chart_events|json_script:"chart-events-data" }}
+  {% else %}
+    <p class="text-slate-500">
+      No cell voltage data recorded for this battery yet.
+    </p>
+  {% endif %}
+</div>
+
+{% if chart_events %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const rawEvents = JSON.parse(
+    document.getElementById("chart-events-data").textContent
+  );
+
+  const canvas = document.getElementById("cellVoltageChart");
+
+  const eventLabels = {
+    "CHARGE": "Charge",
+    "STORAGE": "Storage",
+    "BALANCE": "Balance",
+    "DISCHARGE": "Discharge",
+  };
+
+  const labels = rawEvents.map(e =>
+    `${e.date} ${eventLabels[e.event] ?? e.event} #${e.event_id}`
+  );
+
+  const cellKeys = new Set();
+
+  rawEvents.forEach(event => {
+    Object.keys(event).forEach(key => {
+      if (key.startsWith("cell_")) {
+        cellKeys.add(key);
+      }
+    });
+  });
+
+  const datasets = Array.from(cellKeys).sort().map(key => ({
+    label: key.replace("cell_", "Cell "),
+    data: rawEvents.map(e => e[key] ?? null),
+    tension: 0.2,
+    spanGaps: true,
+  }));
+
+  new Chart(canvas, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: datasets,
+    },
+    options: {
+      responsive: true,
+      interaction: {
+        mode: "index",
+        intersect: false,
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            afterBody: function(items) {
+              if (!items.length) {
+                return "";
+              }
+
+              const index = items[0].dataIndex;
+              const event = rawEvents[index];
+
+              if (event.delta === null || event.delta === undefined) {
+                return "";
+              }
+
+              return `Delta: ${event.delta.toFixed(3)} V`;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          title: {
+            display: true,
+            text: "Voltage (V)",
+          },
+        },
+        x: {
+          title: {
+            display: true,
+            text: "Event",
+          },
+        },
+      },
+    },
+  });
+</script>
+{% endif %}
+
+<div class="card">
+  <h2 class="text-xl font-bold mb-4">Charge Events</h2>
+
+  {% if events %}
+    <div class="overflow-x-auto">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Event</th>
+            <th>Current</th>
+            <th>Cell Voltages</th>
+            <th>Notes</th>
+            {% if user.is_authenticated %}
+              <th></th>
+            {% endif %}
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for event in events %}
+            <tr>
+              <td>{{ event.date }}</td>
+              <td>{{ event.get_event_display }}</td>
+              <td>
+                {% if event.charge_current_a %}
+                  {{ event.charge_current_a }} A
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td>
+                {% for voltage in event.cell_voltages.all %}
+                  {% if voltage.voltage %}
+                    Cell {{ voltage.cell_index }}: {{ voltage.voltage }} V{% if not forloop.last %}<br>{% endif %}
+                  {% endif %}
+                {% empty %}
+                  —
+                {% endfor %}
+              </td>
+              <td>{{ event.notes|default:"—" }}</td>
+
+              {% if user.is_authenticated %}
+                <td class="text-right">
+                  <a
+                    href="{% url 'charge_event_update' event.pk %}"
+                    class="btn-secondary px-3 py-1 text-sm"
+                  >
+                    Edit
+                  </a>
+                </td>
+              {% endif %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-slate-500">
+      No charge events recorded for this battery yet.
+    </p>
+  {% endif %}
+</div>
+
 {% endblock %}
