@@ -78,6 +78,12 @@
         Download PDF
       </a>
       </div>
+      {% if user.is_authenticated %}
+      <div>
+      <a href="{% url 'battery_update' battery.pk %}" class="btn"> Edit Battery
+      </a>
+      {% endif %}      
+      </div>
     </div>
   </div>
 </div>
