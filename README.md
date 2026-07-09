@@ -56,17 +56,17 @@ The Django model names use normal Django naming, but the fields match the reques
 ## Setup
 
 You can use install.sh for semi-automated deployment. if your environment does not have any docker containers before.
-I have tested it with Virtualbox Debian for several times and seems to work OK
+I have tested it with Virtualbox Debian Trixie for several times and seems to work OK (Network Mode is bridged)
 
 install.sh ask you about:
 
 - Directory to install (will make it)
-- Mysql Root Passwd (plain text, for .env file)
+- Mysql Root Passwd (plain text, for .env file, only field that you have to actually write something!)
 - Battomatic DB Name
 - Battomatic DB User
 - Battomatic DB Pass
 
-Or you die like a man ans do all manually.
+Or you Can Die like a Real Man and do all manually.
 
 ## Manual setup
 
