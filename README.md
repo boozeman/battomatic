@@ -25,7 +25,7 @@ Batt-o-matic is a Django + MariaDB web app for maintaining a rechargeable batter
 - Event type filtering
 - Battery statistics and summary view
 - Modern responsive web interface (Tailwind CSS)
-- Battery Management only with Django Admin this time
+- Battery Management when logged
 - Public read-only access with authenticated editing
 - QR code generation for each battery
 - Quick Charge workflow via QR code
@@ -37,7 +37,6 @@ Batt-o-matic is a Django + MariaDB web app for maintaining a rechargeable batter
 - Installer Script for fast testing / development
 
 ## For the next version
-- Direct Battery management with credentials
 - Edge-TX log format importer for flight logs (I hate Betaflight Blackbox Explorer and BBL format!)
 
 ## Database models
