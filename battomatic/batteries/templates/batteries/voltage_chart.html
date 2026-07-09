@@ -1,0 +1,168 @@
+{% extends 'batteries/base.html' %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Cell Voltage Comparison</h1>
+
+<form method="get" class="card mb-6 flex gap-3 items-end">
+  <label class="block flex-1">
+    <span class="label">Battery</span>
+    <select name="battery" class="form-control">
+      {% for battery in all_batteries %}
+        <option value="{{ battery.id }}"
+          {% if selected_battery and selected_battery.id == battery.id %}selected{% endif %}>
+          {{ battery.label }}
+        </option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label class="block flex-1">
+    <span class="label">Events</span>
+  <select id="eventFilter" name="event" class="form-control">
+    <option value="all" {% if selected_event == "all" %}selected{% endif %}>All events</option>
+    <option value="CHARGE" {% if selected_event == "CHARGE" %}selected{% endif %}>Charge only</option>
+    <option value="STORAGE" {% if selected_event == "STORAGE" %}selected{% endif %}>Storage only</option>
+    <option value="BALANCE" {% if selected_event == "BALANCE" %}selected{% endif %}>Balance only</option>
+    <option value="DISCHARGE" {% if selected_event == "DISCHARGE" %}selected{% endif %}>Discharge only</option>
+  </select>
+  </label>
+
+  <button type="submit" class="btn">Apply</button>
+</form>
+
+<div class="card">
+  {% if chart_events %}
+    <canvas id="cellVoltageChart" height="110"></canvas>
+  {% else %}
+    <p class="text-slate-500">
+      No cell voltage data found for this battery.
+    </p>
+  {% endif %}
+</div>
+
+{{ chart_events|json_script:"chart-events-data" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const rawEvents = JSON.parse(
+    document.getElementById("chart-events-data").textContent
+  );
+
+  const canvas = document.getElementById("cellVoltageChart");
+  const eventFilter = document.getElementById("eventFilter");
+
+  let chart = null;
+
+function buildChart(filterValue) {
+  if (!canvas) {
+    return;
+  }
+
+  const filtered = filterValue === "all"
+    ? rawEvents
+    : rawEvents.filter(e => e.event === filterValue);
+
+  const noFilteredDataMessage = document.getElementById("noFilteredDataMessage");
+
+  if (filtered.length === 0) {
+    canvas.classList.add("hidden");
+
+    if (noFilteredDataMessage) {
+      noFilteredDataMessage.classList.remove("hidden");
+    }
+
+    if (chart) {
+      chart.destroy();
+      chart = null;
+    }
+
+    return;
+  }
+
+  canvas.classList.remove("hidden");
+
+  if (noFilteredDataMessage) {
+    noFilteredDataMessage.classList.add("hidden");
+  }
+
+  const labels = filtered.map(e => `${e.date} ${e.event} #${e.event_id}`);
+
+  const cellKeys = new Set();
+
+  filtered.forEach(event => {
+    Object.keys(event).forEach(key => {
+      if (key.startsWith("cell_")) {
+        cellKeys.add(key);
+      }
+    });
+  });
+
+  const datasets = Array.from(cellKeys).sort().map(key => ({
+    label: key.replace("cell_", "Cell "),
+    data: filtered.map(e => e[key] ?? null),
+    tension: 0.2,
+    spanGaps: true,
+  }));
+
+  if (chart) {
+    chart.destroy();
+  }
+
+  chart = new Chart(canvas, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: datasets,
+    },
+    options: {
+      responsive: true,
+      interaction: {
+        mode: "index",
+        intersect: false,
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            afterBody: function(items) {
+              if (!items.length) {
+                return "";
+              }
+
+              const index = items[0].dataIndex;
+              const event = filtered[index];
+
+              if (event.delta === null || event.delta === undefined) {
+                return "";
+              }
+
+              return `Delta: ${event.delta.toFixed(3)} V`;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          title: {
+            display: true,
+            text: "Voltage (V)",
+          },
+        },
+        x: {
+          title: {
+            display: true,
+            text: "Event",
+          },
+        },
+      },
+    },
+  });
+}
+
+  eventFilter.addEventListener("change", function () {
+    buildChart(this.value);
+  });
+
+  buildChart(eventFilter.value);
+</script>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends 'batteries/base.html' %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">
+  {% if object %}Edit Charge Event{% else %}New Charge Event{% endif %}
+</h1>
+
+<form method="post" class="card max-w-3xl space-y-5">
+  {% csrf_token %}
+
+  {{ form.non_field_errors }}
+
+  <div class="grid md:grid-cols-2 gap-4">
+    <label>
+      <span class="label">Date</span>
+      {{ form.date }}
+      {{ form.date.errors }}
+    </label>
+
+    <label>
+      <span class="label">Event</span>
+      {{ form.event }}
+      {{ form.event.errors }}
+    </label>
+  </div>
+
+  <label>
+    <span class="label">Battery</span>
+    {{ form.battery }}
+    {{ form.battery.errors }}
+  </label>
+
+  {% if form.charge_current_a %}
+    <label>
+      <span class="label">Charge Current (A)</span>
+      {{ form.charge_current_a }}
+      {{ form.charge_current_a.errors }}
+    </label>
+  {% endif %}
+
+  <div>
+    <span class="label">Cell voltages after event</span>
+    <p class="text-sm text-slate-400 mb-3">
+      Optional. Select a battery and save/open the form again if fields are not visible yet.
+    </p>
+
+    {% if form.cell_voltage_fields %}
+      <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
+        {% for field in form.cell_voltage_fields %}
+          <label>
+            <span class="label">{{ field.label }}</span>
+            {{ field }}
+            {{ field.errors }}
+          </label>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-sm text-slate-500">
+        No battery selected yet.
+      </p>
+    {% endif %}
+  </div>
+
+  <label>
+    <span class="label">Notes</span>
+    {{ form.notes }}
+    {{ form.notes.errors }}
+  </label>
+
+  <div class="flex gap-3">
+    <button type="submit" class="btn">Save</button>
+    <a href="{% url 'charge_event_list' %}" class="btn-secondary">Cancel</a>
+  </div>
+</form>
+
+<script>
+  const batterySelect = document.getElementById("id_battery");
+
+  if (batterySelect) {
+    batterySelect.addEventListener("change", function () {
+      if (this.value) {
+        window.location.href = `${window.location.pathname}?battery=${this.value}`;
+      }
+    });
+  }
+</script>
+{% endblock %}

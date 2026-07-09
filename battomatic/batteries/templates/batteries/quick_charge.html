@@ -1,0 +1,99 @@
+{% extends 'batteries/base.html' %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Quick Charge</h1>
+
+<div class="card mb-6">
+  <h2 class="text-xl font-bold mb-4">
+    Battery #{{ battery.id }}
+  </h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="metric">
+      Manufacturer
+      <span>{{ battery.manufacturer }}</span>
+    </div>
+
+    <div class="metric">
+      Model
+      <span>{{ battery.model }}</span>
+    </div>
+
+    <div class="metric">
+      Capacity
+      <span>{{ battery.capacity_mah }} mAh</span>
+    </div>
+
+    <div class="metric">
+      Chemistry
+      <span>{{ battery.get_chemistry_display }}</span>
+    </div>
+
+    <div class="metric">
+      Cells
+      <span>{{ battery.cell_count }}S</span>
+    </div>
+
+    <div class="metric">
+      Connector
+      <span>{{ battery.get_connector_display }}</span>
+    </div>
+  </div>
+</div>
+
+<form method="post" class="card space-y-4">
+  {% csrf_token %}
+
+  {{ form.non_field_errors }}
+
+  <div>
+    <label class="label" for="{{ form.date.id_for_label }}">Date</label>
+    {{ form.date }}
+    {{ form.date.errors }}
+  </div>
+
+  <div>
+    <label class="label" for="{{ form.event.id_for_label }}">Event</label>
+    {{ form.event }}
+    {{ form.event.errors }}
+  </div>
+
+  {% if form.charge_current_a %}
+    <div>
+      <label class="label" for="{{ form.charge_current_a.id_for_label }}">
+        Charge current (A)
+      </label>
+      {{ form.charge_current_a }}
+      {{ form.charge_current_a.errors }}
+    </div>
+  {% endif %}
+
+  <div>
+    <label class="label" for="{{ form.notes.id_for_label }}">Notes</label>
+    {{ form.notes }}
+    {{ form.notes.errors }}
+  </div>
+
+{% if form.cell_voltage_fields %}
+  <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
+    {% for field in form.cell_voltage_fields %}
+      <label>
+        <span class="label">{{ field.label }}</span>
+        {{ field }}
+        {{ field.errors }}
+      </label>
+    {% endfor %}
+  </div>
+{% endif %}
+
+  <div class="flex gap-3 pt-4">
+    <button type="submit" class="btn">
+      Save Quick Charge
+    </button>
+
+    <a href="{% url 'battery_detail' battery.pk %}" class="btn-secondary">
+      Cancel
+    </a>
+  </div>
+</form>
+{% endblock %}

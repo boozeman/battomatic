@@ -1,0 +1,16 @@
+{% extends 'batteries/base.html' %}
+{% block content %}
+<div class="flex items-end justify-between mb-6">
+  <div><h1 class="text-3xl font-bold">Batteries</h1><p class="text-slate-400">Public inventory view. Add and edit batteries in Django Admin.</p></div>
+</div>
+<form method="get" class="card mb-6 flex gap-3 items-end">
+  <label class="block flex-1"><span class="label">Filter by battery</span><select name="battery" class="form-control"><option value="">All batteries</option>{% for battery in all_batteries %}<option value="{{ battery.id }}" {% if selected_battery == battery.id|stringformat:'s' %}selected{% endif %}>{{ battery.label }}</option>{% endfor %}</select></label>
+  <button class="btn">Apply</button>
+</form>
+<div class="card overflow-x-auto">
+<table class="table">
+<thead><tr><th>ID</th><th>State</th><th>Chemistry</th><th>Connector</th><th>Purchased</th><th>Manufacturer</th><th>Model</th><th>Cells</th><th>C</th><th>mAh</th><th>Weight</th><th>Events</th></tr></thead>
+<tbody>{% for b in batteries %}<tr><td><a href="{{ b.get_absolute_url }}" class="link">#{{ b.id }}</a></td><td>{{ b.get_state_display }}</td><td>{{ b.get_chemistry_display }}</td><td>{{ b.get_connector_display }}</td><td>{{ b.purchase_date|default:'—' }}</td><td>{{ b.manufacturer|default:'—' }}</td><td>{{ b.model }}</td><td>{{ b.cell_count }}</td><td>{{ b.c_rating|default:'—' }}</td><td>{{ b.capacity_mah }}</td><td>{{ b.weight_g }}</td><td>{{ b.event_count }}</td></tr>{% empty %}<tr><td colspan="10" class="text-center text-slate-400 py-8">No batteries yet. Create one in Django Admin.</td></tr>{% endfor %}</tbody>
+</table>
+</div>
+{% endblock %}

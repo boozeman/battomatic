@@ -1,0 +1,47 @@
+services:
+  adminer:
+    container_name: adminer
+    image: adminer:5.4.2
+    restart: unless-stopped
+    ports:
+      - "8080:8080/tcp"
+    environment:
+      ADMINER_DEFAULT_SERVER: mariadb
+
+  mariadb:
+    container_name: mariadb
+    image: mariadb:latest
+    restart: always
+    ports:
+      - "3306:3306/tcp"
+    environment:
+      TZ: ${TIMEZONE}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - ${TARGET_DIR_ABS}/mariadb/data:/var/lib/mysql
+      - ${TARGET_DIR_ABS}/mariadb/config/:/etc/mysql/conf.d
+      - ${TARGET_DIR_ABS}/mariadb/sql:/docker-entrypoint-initdb.d
+
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: nginx-proxy
+    restart: always
+    ports:
+      - "80:80" 
+    volumes:
+      - ${TARGET_DIR_ABS}/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
+  batt-o-matic:
+    container_name: batt-o-matic
+    build:
+      context: ${TARGET_DIR_ABS}/battomatic
+      dockerfile: ${TARGET_DIR_ABS}/battomatic_dockerfile
+    env_file:
+      - .env
+    restart: unless-stopped
+    volumes:
+      - ${TARGET_DIR_ABS}/battomatic:/battomatic
+    ports:
+      - "3005:3005/tcp"
+    depends_on:
+      - mariadb

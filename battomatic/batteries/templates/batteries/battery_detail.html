@@ -1,0 +1,90 @@
+{% extends 'batteries/base.html' %}
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">{{ battery.label }}</h1>
+<div class="grid md:grid-cols-3 gap-4 mb-8">
+  <div class="metric">State<span>{{ battery.get_state_display }}</span></div>
+  <div class="metric">Chemistry<span>{{ battery.get_chemistry_display }}</span></div>
+  <div class="metric">Manufacturer<span>{{ battery.manufacturer }}</span></div>
+  <div class="metric">Connector<span>{{ battery.get_connector_display }}</span></div>
+  <div class="metric">Cells<span>{{ battery.cell_count }}</span></div>
+  <div class="metric">Weight<span>{% if battery.weight_g %} {{ battery.weight_g }} g {% else %} - {% endif %}</span></div>
+  <div class="metric">Charge cycles<span>{{ charge_cycle_count }}</span></div>
+  <div class="metric">Storage events<span>{{ storage_count }}</span></div>
+  <div class="metric">Balance events<span>{{ balance_count }}</span></div>
+  <div class="metric">Discharge events<span>{{ discharge_count }}</span></div>  
+  <div class="metric">
+    Last charge
+    <span>
+      {% if last_charge %}
+        {{ last_charge.date }}
+      {% else %}
+        —
+      {% endif %}
+    </span>
+  </div>
+
+  <div class="metric">
+    Last storage
+    <span>
+      {% if last_storage %}
+        {{ last_storage.date }}
+      {% else %}
+        —
+      {% endif %}
+    </span>
+  </div>
+  <div class="metric">
+    Battery health
+  <span class="
+    font-bold
+    {% if battery.health == 'Excellent' %}
+      text-green-600
+    {% elif battery.health == 'Good' %}
+      text-lime-600
+    {% elif battery.health == 'Fair' %}
+      text-yellow-600
+    {% elif battery.health == 'Aging' %}
+      text-orange-600
+    {% elif battery.health == 'Needs Attention' %}
+      text-red-600
+    {% else %}
+      text-slate-600
+    {% endif %}
+  ">
+    {% if battery.health == 'Excellent' %}🟢{% endif %}
+    {% if battery.health == 'Good' %}🟢{% endif %}
+    {% if battery.health == 'Fair' %}🟡{% endif %}
+    {% if battery.health == 'Aging' %}🟠{% endif %}
+    {% if battery.health == 'Needs Attention' %}🔴{% endif %}
+    {{ battery.health }}
+    </span>
+  </div>
+</div>
+
+<div class="card mt-6">
+  <h2 class="text-xl font-bold mb-4">QR Code</h2>
+  <div class="flex flex-col sm:flex-row gap-6 items-start">
+    <img src="{% url 'battery_qr_code' battery.pk %}" alt="QR code for {{ battery.label }}" class="w-20 h-20 border rounded bg-white p-2">
+    <div>
+      <p class="text-sm text-slate-600 mb-3">
+        Scan this code to open this battery directly.
+      </p>
+      <div>
+      <a href="{% url 'battery_qr_code' battery.pk %}" class="btn px-2 py-1 text-sm" download="battery-{{ battery.pk }}-qr.png">
+        Download QR
+      
+      </a>
+      <a href="{% url 'battery_label_pdf' battery.pk %}" class="btn px-2 py-1 text-sm" download="battery-{{ battery.pk }a}-label.pdf">
+        Download PDF
+      </a>
+      </div>
+    </div>
+  </div>
+</div>
+<br>
+
+<div class="card overflow-x-auto">
+<table class="table"><thead><tr><th>Date</th><th>Event</th><th>Current</th><th>Voltages</th><th>Notes</th><th></th></tr></thead><tbody>
+{% for e in battery.charge_events.all %}<tr><td>{{ e.date }}</td><td>{{ e.get_event_display }}</td><td>{% if e.charge_current_a %} {{ e.charge_current_a }} A {% else %} - {% endif %}</td><td>{% for v in e.cell_voltages.all %}<span class="pill">C{{ v.cell_index }}: {{ v.voltage|default:'—' }}</span>{% endfor %}</td><td>{{ e.notes|default:'—' }}</td><td>{% if user.is_authenticated %}<a class="link" href="{% url 'charge_event_update' e.id %}">Edit</a>{% endif %}</td></tr>{% empty %}<tr><td colspan="5" class="text-center text-slate-400 py-8">No charge events.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}
