@@ -1,0 +1,99 @@
+{% extends 'batteries/base.html' %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">
+  {% if object %}Edit Battery{% else %}New Battery{% endif %}
+</h1>
+
+<form method="post" class="card max-w-3xl space-y-5">
+  {% csrf_token %}
+
+  {{ form.non_field_errors }}
+
+  <div class="grid md:grid-cols-2 gap-4">
+    <label>
+      <span class="label">State</span>
+      {{ form.state }}
+      {{ form.state.errors }}
+    </label>
+
+    <label>
+      <span class="label">Chemistry</span>
+      {{ form.chemistry }}
+      {{ form.chemistry.errors }}
+    </label>
+
+    <label>
+      <span class="label">Connector</span>
+      {{ form.connector }}
+      {{ form.connector.errors }}
+    </label>
+    
+  </div>
+
+  <label>
+    <span class="label">Purchase Date</span>
+    {{ form.purchase_date }}
+    {{ form.purchase_date.errors }}
+  </label>
+
+  <div class="grid md:grid-cols-2 gap-4">
+    <label>
+      <span class="label">Manufacturer</span>
+      {{ form.manufacturer }}
+      {{ form.manufacturer.errors }}
+    </label>
+
+    <label>
+      <span class="label">Model</span>
+      {{ form.model }}
+      {{ form.model.errors }}
+    </label>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-4">
+
+    <label>
+      <span class="label">Cell Count</span>
+      {{ form.cell_count }}
+      {{ form.cell_count.errors }}
+    </label>
+
+    <label>
+      <span class="label">C Rating</span>
+      {{ form.c_rating }}
+      {{ form.c_rating.errors }}
+    </label>
+  </div>
+
+  <div class="grid md:grid-cols-3 gap-4">
+    <label>
+      <span class="label">Capacity (mAh)</span>
+      {{ form.capacity_mah }}
+      {{ form.capacity_mah.errors }}
+    </label>
+
+    <label>
+      <span class="label">Weight (g)</span>
+      {{ form.weight_g }}
+      {{ form.weight_g.errors }}
+    </label>
+  </div>
+
+  <div class="flex gap-3">
+    <button type="submit" class="btn">
+      Save
+    </button>
+
+    {% if object %}
+      <a href="{% url 'battery_detail' object.pk %}" class="btn-secondary">
+        Cancel
+      </a>
+    {% else %}
+      <a href="{% url 'battery_list' %}" class="btn-secondary">
+        Cancel
+      </a>
+    {% endif %}
+  </div>
+</form>
+{% endblock %}
