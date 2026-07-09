@@ -8,6 +8,60 @@ class BatteryChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         return obj.label
 
+class BatteryForm(forms.ModelForm):
+    class Meta:
+        model = Battery
+        fields = [
+            "state",
+            "chemistry",
+            "purchase_date",
+            "manufacturer",
+            "model",
+            "connector",
+            "cell_count",
+            "capacity_mah",
+            "c_rating",
+            "weight",
+        ]
+
+        widgets = {
+            "state": forms.Select(
+                attrs={"class": "form-control"}
+            ),
+            "chemistry": forms.Select(
+                attrs={"class": "form-control"}
+            ),
+            "purchase_date": forms.DateInput(
+                attrs={
+                    "type": "date",
+                    "class": "form-control",
+                }
+            ),
+            "manufacturer": forms.TextInput(
+                attrs={"class": "form-control"}
+            ),
+            "model": forms.TextInput(
+                attrs={"class": "form-control"}
+            ),
+            "connector": forms.Select(
+                attrs={"class": "form-control"}
+            ),
+            "cell_count": forms.NumberInput(
+                attrs={"class": "form-control"}
+            ),
+            "capacity_mah": forms.NumberInput(
+                attrs={"class": "form-control"}
+            ),
+            "c_rating": forms.NumberInput(
+                attrs={"class": "form-control"}
+            ),
+            "weight": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "grams",
+                }
+            ),
+        }
 
 class ChargeEventForm(forms.ModelForm):
     class Meta:
