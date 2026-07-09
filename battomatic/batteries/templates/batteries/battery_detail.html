@@ -1,6 +1,44 @@
 {% extends 'batteries/base.html' %}
 {% block content %}
 <h1 class="text-3xl font-bold mb-6">{{ battery.label }}</h1>
+<div class="flex justify-between items-center mb-4">
+
+    <div>
+        <h1 class="text-3xl font-bold">
+            {{ battery.label }}
+        </h1>
+
+        {% if user.is_authenticated %}
+        <div class="flex flex-wrap gap-2 mt-3">
+
+            <a href="{% url 'battery_update' battery.pk %}"
+               class="btn px-3 py-1 text-sm">
+                Edit
+            </a>
+
+            <a href="{% url 'battery_quick_charge' battery.pk %}"
+               class="btn px-3 py-1 text-sm">
+                Quick Charge
+            </a>
+
+            <a href="{% url 'battery_qr_code' battery.pk %}"
+               class="btn px-3 py-1 text-sm"
+               download="battery-{{ battery.pk }}-qr.png">
+                Download QR
+            </a>
+
+            <a href="{% url 'battery_label_pdf' battery.pk %}"
+               class="btn px-3 py-1 text-sm"
+               download="battery-{{ battery.pk }}-label.pdf">
+                Print Label
+            </a>
+
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
 <div class="grid md:grid-cols-3 gap-4 mb-8">
   <div class="metric">State<span>{{ battery.get_state_display }}</span></div>
   <div class="metric">Chemistry<span>{{ battery.get_chemistry_display }}</span></div>
@@ -60,34 +98,6 @@
     </span>
   </div>
 </div>
-
-<div class="card mt-6">
-  <h2 class="text-xl font-bold mb-4">QR Code</h2>
-  <div class="flex flex-col sm:flex-row gap-6 items-start">
-    <img src="{% url 'battery_qr_code' battery.pk %}" alt="QR code for {{ battery.label }}" class="w-20 h-20 border rounded bg-white p-2">
-    <div>
-      <p class="text-sm text-slate-600 mb-3">
-        Scan this code to open this battery directly.
-      </p>
-      <div>
-      <a href="{% url 'battery_qr_code' battery.pk %}" class="btn px-2 py-1 text-sm" download="battery-{{ battery.pk }}-qr.png">
-        Download QR
-      
-      </a>
-      <a href="{% url 'battery_label_pdf' battery.pk %}" class="btn px-2 py-1 text-sm" download="battery-{{ battery.pk }a}-label.pdf">
-        Download PDF
-      </a>
-      </div>
-      {% if user.is_authenticated %}
-      <div>
-      <a href="{% url 'battery_update' battery.pk %}" class="btn"> Edit Battery
-      </a>
-      {% endif %}      
-      </div>
-    </div>
-  </div>
-</div>
-<br>
 
 <div class="card overflow-x-auto">
 <table class="table"><thead><tr><th>Date</th><th>Event</th><th>Current</th><th>Voltages</th><th>Notes</th><th></th></tr></thead><tbody>
