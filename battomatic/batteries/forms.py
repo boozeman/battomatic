@@ -17,10 +17,10 @@ class BatteryForm(forms.ModelForm):
             "connector",
             "purchase_date",
             "manufacturer",
-            "model",            
+            "model",
             "cell_count",
             "c_rating",
-            "capacity_mah",            
+            "capacity_mah",
             "weight_g",
         ]
 
@@ -29,6 +29,9 @@ class BatteryForm(forms.ModelForm):
                 attrs={"class": "form-control"}
             ),
             "chemistry": forms.Select(
+                attrs={"class": "form-control"}
+            ),
+            "connector": forms.Select(
                 attrs={"class": "form-control"}
             ),
             "purchase_date": forms.DateInput(
@@ -43,19 +46,16 @@ class BatteryForm(forms.ModelForm):
             "model": forms.TextInput(
                 attrs={"class": "form-control"}
             ),
-            "connector": forms.Select(
-                attrs={"class": "form-control"}
-            ),
             "cell_count": forms.NumberInput(
-                attrs={"class": "form-control"}
-            ),
-            "capacity_mah": forms.NumberInput(
                 attrs={"class": "form-control"}
             ),
             "c_rating": forms.NumberInput(
                 attrs={"class": "form-control"}
             ),
-            "weight": forms.NumberInput(
+            "capacity_mah": forms.NumberInput(
+                attrs={"class": "form-control"}
+            ),
+            "weight_g": forms.NumberInput(
                 attrs={
                     "class": "form-control",
                     "placeholder": "grams",
