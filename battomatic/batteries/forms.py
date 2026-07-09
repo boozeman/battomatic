@@ -14,14 +14,14 @@ class BatteryForm(forms.ModelForm):
         fields = [
             "state",
             "chemistry",
+            "connector",
             "purchase_date",
             "manufacturer",
-            "model",
-            "connector",
+            "model",            
             "cell_count",
-            "capacity_mah",
             "c_rating",
-            "weight",
+            "capacity_mah",            
+            "weight_g",
         ]
 
         widgets = {
