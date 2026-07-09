@@ -12,7 +12,7 @@ from django.http import JsonResponse, HttpResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView, TemplateView, UpdateView
-from .forms import ChargeEventForm
+from .forms import BatteryForm, ChargeEventForm
 from .models import Battery, CellVoltage, ChargeEvent
 
 
@@ -34,6 +34,11 @@ class BatteryListView(ListView):
         ctx['selected_battery'] = self.request.GET.get('battery', '')
         return ctx
 
+class BatteryCreateView(LoginRequiredMixin, CreateView):
+    model = Battery
+    form_class = BatteryForm
+    template_name = "batteries/battery_form.html"
+    success_url = reverse_lazy("battery_list")
 
 class BatteryDetailView(DetailView):
     model = Battery
@@ -112,6 +117,17 @@ class BatteryDetailView(DetailView):
         context["chart_events"] = chart_events
 
         return context
+
+class BatteryUpdateView(LoginRequiredMixin, UpdateView):
+    model = Battery
+    form_class = BatteryForm
+    template_name = "batteries/battery_form.html"
+
+    def get_success_url(self):
+        return reverse(
+            "battery_detail",
+            args=[self.object.pk],
+        )
 
 class BatteryQuickChargeView(LoginRequiredMixin, CreateView):
     model = ChargeEvent
