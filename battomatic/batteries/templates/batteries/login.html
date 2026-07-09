@@ -1,5 +1,13 @@
 {% extends 'batteries/base.html' %}
 {% block content %}
+
 <h1 class="text-3xl font-bold mb-6">Login</h1>
-<form method="post" class="card max-w-md space-y-4">{% csrf_token %}{{ form.non_field_errors }}<label><span class="label">Username</span>{{ form.username }}</label><label><span class="label">Password</span>{{ form.password }}</label><button class="btn">Login</button></form>
+
+<form method="post" class="card mb-6 flex gap-3 items-end">
+    {% csrf_token %}{{ form.non_field_errors }}
+    <label><span class="label">Username</span>{{ form.username }}</label>
+    <label><span class="label">Password</span>{{ form.password }}</label>   
+    <button class="btn">Login</button>            
+</form>
+
 {% endblock %}

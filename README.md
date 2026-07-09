@@ -76,6 +76,7 @@ Let's assume some things for the directories:
 
 Install Docker (Debian here, so adjust accordinly)
 ```bash
+sudo apt-get install curl
 curl -fsSL https://get.docker.com | sh
 sudo usermod -aG docker $USER
 ```
