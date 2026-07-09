@@ -7,7 +7,9 @@ Batt-o-matic is a Django + MariaDB web app for maintaining a rechargeable batter
     <td><img src="pics/charge_events.png" width="400" /></td>
     <td><img src="pics/new_charge_event.png" width="400" /></td>
     <td><img src="pics/batteries_view.png" width="400" /></td>
-    <td><img src="pics/battery_details.png" width="400" /></td>
+    <td><img src="pics/new_battery.png" width="400" /></td>    
+    <td><img src="pics/battery_details1.png" width="400" /></td>
+    <td><img src="pics/battery_details2.png" width="400" /></td>
     <td><img src="pics/cell_voltage_chart.png" width="400" /></td>
   </tr>
 </table>
