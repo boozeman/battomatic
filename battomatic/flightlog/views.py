@@ -1,7 +1,7 @@
 from django.shortcuts import render
 
 from .forms import FlightLogUploadForm
-from .parser import FlightLogParseError, parse_flight_log
+from .parser import FlightLogParseError, parse_flight_logs
 
 
 def upload_flight_logs(request):
@@ -17,8 +17,8 @@ def upload_flight_logs(request):
         if form.is_valid():
             for uploaded_file in form.cleaned_data["files"]:
                 try:
-                    parsed_logs.append(
-                        parse_flight_log(uploaded_file)
+                    parsed_logs.extend(
+                        parse_flight_logs(uploaded_file)
                     )
                 except FlightLogParseError as error:
                     errors.append(
