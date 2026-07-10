@@ -119,3 +119,53 @@ class FlightLogUploadFormTests(SimpleTestCase):
 
         self.assertFalse(form.is_valid())
         self.assertIn("files", form.errors)
+
+
+def test_splits_log_when_zero_voltage_gap_separates_flights(self):
+    csv_content = """Date,Time,RxBt(V)
+2026-07-10,16:39:41.300,17.1
+2026-07-10,16:39:42.300,16.9
+2026-07-10,16:39:43.300,16.8
+2026-07-10,16:39:44.300,0
+2026-07-10,16:39:45.300,0
+2026-07-10,16:39:46.300,0
+2026-07-10,16:40:20.300,17.3
+2026-07-10,16:40:21.300,17.1
+2026-07-10,16:40:22.300,16.9
+"""
+
+    uploaded_file = SimpleUploadedFile(
+        name="Mallinimi-2026-07-10-163941.csv",
+        content=csv_content.encode("utf-8"),
+        content_type="text/csv",
+    )
+
+    results = parse_flight_logs(uploaded_file)
+
+    self.assertEqual(len(results), 2)
+
+    first_flight = results[0]
+    self.assertEqual(
+        first_flight.start_datetime.isoformat(),
+        "2026-07-10T16:39:41.300000",
+    )
+    self.assertEqual(
+        first_flight.end_datetime.isoformat(),
+        "2026-07-10T16:39:43.300000",
+    )
+    self.assertEqual(first_flight.flight_time.total_seconds(), 2)
+    self.assertEqual(str(first_flight.start_voltage), "17.1")
+    self.assertEqual(str(first_flight.end_voltage), "16.8")
+
+    second_flight = results[1]
+    self.assertEqual(
+        second_flight.start_datetime.isoformat(),
+        "2026-07-10T16:40:20.300000",
+    )
+    self.assertEqual(
+        second_flight.end_datetime.isoformat(),
+        "2026-07-10T16:40:22.300000",
+    )
+    self.assertEqual(second_flight.flight_time.total_seconds(), 2)
+    self.assertEqual(str(second_flight.start_voltage), "17.3")
+    self.assertEqual(str(second_flight.end_voltage), "16.9")
