@@ -43,7 +43,7 @@
 
 <form method="post" class="card space-y-4">
   {% csrf_token %}
-
+  {{ form.battery.as_hidden }}
   {{ form.non_field_errors }}
 
   <div>
