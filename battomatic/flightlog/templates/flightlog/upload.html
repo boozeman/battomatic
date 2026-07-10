@@ -5,11 +5,57 @@
 
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-
     {{ form.as_p }}
 
     <button type="submit">
-        Import
+        Parse logs
     </button>
 </form>
+
+{% if errors %}
+    <h2>Errors</h2>
+
+    <ul>
+        {% for error in errors %}
+            <li>
+                <strong>{{ error.filename }}</strong>:
+                {{ error.message }}
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+{% if parsed_logs %}
+    <h2>Parsed logs</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Model</th>
+                <th>Date</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Flight time</th>
+                <th>Start voltage</th>
+                <th>End voltage</th>
+                <th>Filename</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for log in parsed_logs %}
+                <tr>
+                    <td>{{ log.model }}</td>
+                    <td>{{ log.date|date:"Y-m-d" }}</td>
+                    <td>{{ log.start_time|time:"H:i:s" }}</td>
+                    <td>{{ log.end_time|time:"H:i:s" }}</td>
+                    <td>{{ log.flight_time }}</td>
+                    <td>{{ log.start_voltage }} V</td>
+                    <td>{{ log.end_voltage }} V</td>
+                    <td>{{ log.filename }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
 {% endblock %}
