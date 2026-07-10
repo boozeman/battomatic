@@ -15,6 +15,14 @@ from django.views.generic import CreateView, DetailView, ListView, TemplateView,
 from .forms import BatteryForm, ChargeEventForm
 from .models import Battery, CellVoltage, ChargeEvent
 
+# Date sorting
+def get_sort(request, allowed, default):
+    sort = request.GET.get("sort", default)
+
+    if sort not in allowed:
+        return default
+
+    return sort
 
 class BatteryListView(ListView):
     model = Battery
@@ -33,7 +41,6 @@ class BatteryListView(ListView):
         ctx['all_batteries'] = Battery.objects.all()
         ctx['selected_battery'] = self.request.GET.get('battery', '')
         return ctx
-
 class BatteryCreateView(LoginRequiredMixin, CreateView):
     model = Battery
     form_class = BatteryForm
@@ -49,6 +56,12 @@ class BatteryDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         battery = self.object
 
+        sort = get_sort(
+            self.request,
+            allowed={"date", "-date"},
+            default="-date",
+        )
+
         events = (
             ChargeEvent.objects
             .filter(battery=battery)
@@ -57,6 +70,7 @@ class BatteryDetailView(DetailView):
         )
 
         context["events"] = events
+        context["sort"] = sort
 
         context["charge_cycle_count"] = events.filter(
             event=ChargeEvent.Event.CHARGE
