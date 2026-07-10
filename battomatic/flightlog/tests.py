@@ -1,10 +1,14 @@
 from io import BytesIO
-
+from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase
 
 from .forms import FlightLogUploadForm
 from .parser import parse_flight_log, parse_flight_logs
+
+from datetime import timedelta
+
+from .parser import format_duration
 
 CSV_CONTENT = """Date,Time,FM,Ptch(rad),Roll(rad),Yaw(rad),RxBt(V),Curr(A),Capa(mAh),Bat%(%)
 2026-07-10,16:39:41.300,"AIR",0.00,0.00,0.57,17.1,0.5,4,99
@@ -168,3 +172,80 @@ def test_splits_log_when_zero_voltage_gap_separates_flights(self):
     self.assertEqual(second_flight.flight_time.total_seconds(), 2)
     self.assertEqual(str(second_flight.start_voltage), "17.3")
     self.assertEqual(str(second_flight.end_voltage), "16.9")
+
+
+class FlightTimeFormattingTests(SimpleTestCase):
+    def test_formats_minutes_and_seconds(self):
+        duration = timedelta(minutes=3, seconds=42)
+
+        self.assertEqual(format_duration(duration), "03:42")
+
+    def test_ignores_fractional_seconds(self):
+        duration = timedelta(minutes=4, seconds=12, milliseconds=900)
+
+        self.assertEqual(format_duration(duration), "04:12")
+
+    def test_supports_more_than_one_hour(self):
+        duration = timedelta(hours=1, minutes=7, seconds=15)
+
+        self.assertEqual(format_duration(duration), "67:15")
+
+    def test_formats_zero_duration(self):
+        self.assertEqual(format_duration(timedelta()), "00:00")
+
+class FlightLogUploadViewTests(SimpleTestCase):
+    def test_upload_page_opens(self):
+        response = self.client.get(
+            reverse("flightlog:upload")
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response,
+            "flightlog/upload.html",
+        )
+
+    def test_uploaded_log_is_displayed(self):
+        csv_content = """Date,Time,RxBt(V)
+2026-07-10,16:39:41.300,17.1
+2026-07-10,16:43:23.300,15.8
+"""
+
+        uploaded_file = SimpleUploadedFile(
+            name="Mallinimi-2026-07-10-163941.csv",
+            content=csv_content.encode("utf-8"),
+            content_type="text/csv",
+        )
+
+        response = self.client.post(
+            reverse("flightlog:upload"),
+            data={
+                "files": uploaded_file,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Mallinimi")
+        self.assertContains(response, "03:42")
+        self.assertContains(response, "17.1 V")
+        self.assertContains(response, "15.8 V")
+
+    def test_invalid_log_error_is_displayed(self):
+        uploaded_file = SimpleUploadedFile(
+            name="Mallinimi-2026-07-10-163941.csv",
+            content=b"Wrong,Header\nfoo,bar\n",
+            content_type="text/csv",
+        )
+
+        response = self.client.post(
+            reverse("flightlog:upload"),
+            data={
+                "files": uploaded_file,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "CSV-tiedostosta puuttuvat kentät",
+        )        

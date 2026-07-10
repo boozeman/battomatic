@@ -42,6 +42,10 @@ class ParsedFlightLog:
     def end_time(self):
         return self.end_datetime.time()
 
+    @property
+    def formatted_flight_time(self):
+        return format_duration(self.flight_time)
+
 
 def parse_model_name(filename: str) -> str:
     basename = Path(filename).name
