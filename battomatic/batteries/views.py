@@ -66,7 +66,7 @@ class BatteryDetailView(DetailView):
             ChargeEvent.objects
             .filter(battery=battery)
             .prefetch_related("cell_voltages")
-            .order_by("date", "id")
+            .order_by(sort, "-id")
         )
 
         context["events"] = events
