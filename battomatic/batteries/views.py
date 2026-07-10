@@ -183,23 +183,43 @@ class BatteryQuickChargeView(LoginRequiredMixin, CreateView):
 
 class ChargeEventListView(ListView):
     model = ChargeEvent
-    template_name = 'batteries/charge_event_list.html'
-    context_object_name = 'events'
+    template_name = "batteries/charge_event_list.html"
+    context_object_name = "events"
     paginate_by = 50
 
     def get_queryset(self):
-        qs = ChargeEvent.objects.select_related('battery').prefetch_related('cell_voltages')
-        battery_id = self.request.GET.get('battery')
+        sort = get_sort(
+            self.request,
+            allowed={"date", "-date"},
+            default="-date",
+        )
+
+        qs = (
+            ChargeEvent.objects
+            .select_related("battery")
+            .prefetch_related("cell_voltages")
+            .order_by(sort, "-id")
+        )
+
+        battery_id = self.request.GET.get("battery")
         if battery_id:
             qs = qs.filter(battery_id=battery_id)
+
         return qs
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['all_batteries'] = Battery.objects.all()
-        ctx['selected_battery'] = self.request.GET.get('battery', '')
-        return ctx
 
+        ctx["sort"] = get_sort(
+            self.request,
+            allowed={"date", "-date"},
+            default="-date",
+        )
+
+        ctx["all_batteries"] = Battery.objects.all()
+        ctx["selected_battery"] = self.request.GET.get("battery", "")
+
+        return ctx
 
 class ChargeEventMixin(LoginRequiredMixin):
     model = ChargeEvent

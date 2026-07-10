@@ -20,7 +20,27 @@
 
 <div class="card overflow-x-auto">
 <table class="table">
-<thead><tr><th>Date</th><th>Battery</th><th>Event</th><th>Current</th><th>Voltages</th><th>Notes</th><th></th></tr></thead><tbody>
+<thead>
+  <tr>
+    <th>
+      <a href="?{% if selected_battery %}battery={{ selected_battery }}&{% endif %}sort={% if sort == '-date' %}date{% else %}-date{% endif %}">
+          Date
+          {% if sort == "-date" %}
+              ▼
+          {% elif sort == "date" %}
+              ▲
+          {% endif %}
+      </a>
+    </th>
+    <th>Battery</th>
+    <th>Event</th>
+    <th>Current</th>
+    <th>Voltages</th>
+    <th>Notes</th>
+    <th></th>
+  </tr>
+</thead>
+<tbody>
 {% for e in events %}<tr><td>{{ e.date }}</td><td><a class="link" href="{{ e.battery.get_absolute_url }}">{{ e.battery.label }}</a></td><td>{{ e.get_event_display }}{% if e.missing_voltage_warning %}<span class="ml-2 text-amber-300">⚠ voltages missing</span>{% endif %}</td><td>{% if e.charge_current_a %} {{ e.charge_current_a }} A {% else %} - {% endif %}</td><td>{% for v in e.cell_voltages.all %}<span class="pill">C{{ v.cell_index }}: {{ v.voltage|default:'—' }}</span>{% endfor %}</td><td>{{ e.notes|truncatechars:80|default:'—' }}</td><td>{% if user.is_authenticated %}<a class="link" href="{% url 'charge_event_update' e.id %}">Edit</a>{% endif %}</td></tr>{% empty %}<tr><td colspan="6" class="text-center text-slate-400 py-8">No charge events.</td></tr>{% endfor %}
 </tbody></table></div>
 {% endblock %}
