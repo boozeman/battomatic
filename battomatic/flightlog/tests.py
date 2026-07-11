@@ -287,6 +287,27 @@ class FlightLogUploadFormTests(SimpleTestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("chemistry", form.errors)
 
+    def test_session_preview_is_displayed(self):
+        response = self.client.post(
+            reverse("flightlog:upload"),
+            data={
+                "cell_count": "4",
+                "chemistry": "lihv",
+                "files": self.make_file(),
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Battery session 1")
+        self.assertContains(response, "17.00 V")
+        self.assertContains(
+            response,
+            "Ensimmäinen löydetty lento",
+        )
+        self.assertContains(response, "Total flight time")
+        self.assertContains(response, "Longest flight")
+        self.assertContains(response, "Shortest flight")        
+
     @override_settings(
         FLIGHTLOG_MAX_FILES=2,
         FLIGHTLOG_MAX_FILE_SIZE=1024,
