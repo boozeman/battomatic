@@ -12,6 +12,11 @@ from .parser import (
     parse_flight_logs,
 )
 
+from .session_builder import (
+    FlightSessionBuildError,
+    get_new_battery_voltage_threshold,
+)
+
 
 CSV_CONTENT = """Date,Time,FM,Ptch(rad),Roll(rad),Yaw(rad),RxBt(V),Curr(A),Capa(mAh),Bat%(%)
 2026-07-10,16:39:41.300,"AIR",0.00,0.00,0.57,17.1,0.5,4,99
@@ -390,3 +395,62 @@ foo,bar
             len(response.context["parsed_logs"]),
             2,
         )
+
+@override_settings(
+    STORAGES={
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": (
+                "django.contrib.staticfiles.storage.StaticFilesStorage"
+            ),
+        },
+    }
+)
+class FlightSessionVoltageThresholdTests(SimpleTestCase):
+    def test_four_cell_lipo_threshold(self):
+        threshold = get_new_battery_voltage_threshold(
+            cell_count=4,
+            chemistry="lipo",
+        )
+
+        self.assertEqual(str(threshold), "16.00")
+
+    def test_four_cell_lihv_threshold(self):
+        threshold = get_new_battery_voltage_threshold(
+            cell_count=4,
+            chemistry="lihv",
+        )
+
+        self.assertEqual(str(threshold), "17.00")
+
+    def test_six_cell_lipo_threshold(self):
+        threshold = get_new_battery_voltage_threshold(
+            cell_count=6,
+            chemistry="lipo",
+        )
+
+        self.assertEqual(str(threshold), "24.00")
+
+    def test_six_cell_lihv_threshold(self):
+        threshold = get_new_battery_voltage_threshold(
+            cell_count=6,
+            chemistry="lihv",
+        )
+
+        self.assertEqual(str(threshold), "25.50")
+
+    def test_rejects_unknown_chemistry(self):
+        with self.assertRaises(FlightSessionBuildError):
+            get_new_battery_voltage_threshold(
+                cell_count=4,
+                chemistry="nimh",
+            )
+
+    def test_rejects_zero_cell_count(self):
+        with self.assertRaises(FlightSessionBuildError):
+            get_new_battery_voltage_threshold(
+                cell_count=0,
+                chemistry="lipo",
+            )
