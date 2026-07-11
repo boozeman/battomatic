@@ -197,6 +197,11 @@ class FlightLogUploadFormTests(SimpleTestCase):
 
         self.assertFalse(form.is_valid())
         self.assertIn("files", form.errors)
+        self.assertIn(
+            "tiedoston pitää olla CSV-tiedosto",
+            form.errors["files"][0],
+        )
+
 
     def test_rejects_empty_file(self):
         uploaded_file = self.make_file(content=b"")
@@ -261,14 +266,20 @@ class FlightLogUploadFormTests(SimpleTestCase):
 
     @override_settings(
         FLIGHTLOG_MAX_FILES=2,
-        FLIGHTLOG_MAX_FILE_SIZE=100,
-        FLIGHTLOG_MAX_TOTAL_SIZE=150,
+        FLIGHTLOG_MAX_FILE_SIZE=1024,
+        FLIGHTLOG_MAX_TOTAL_SIZE=4096,
     )
     def test_rejects_too_many_files(self):
         files = [
-            self.make_file(name="Model-A-2026-07-10-100000.csv"),
-            self.make_file(name="Model-B-2026-07-10-101000.csv"),
-            self.make_file(name="Model-C-2026-07-10-102000.csv"),
+            self.make_file(
+                name="Model-A-2026-07-10-100000.csv",
+            ),
+            self.make_file(
+                name="Model-B-2026-07-10-101000.csv",
+            ),
+            self.make_file(
+                name="Model-C-2026-07-10-102000.csv",
+            ),
         ]
 
         form = self.make_form(files)
@@ -277,14 +288,15 @@ class FlightLogUploadFormTests(SimpleTestCase):
         self.assertIn("files", form.errors)
         self.assertIn(
             "enintään 2 tiedostoa",
-            str(form.errors["files"]),
+            form.errors["files"][0],
         )
+
 
 
     @override_settings(
         FLIGHTLOG_MAX_FILES=10,
         FLIGHTLOG_MAX_FILE_SIZE=20,
-        FLIGHTLOG_MAX_TOTAL_SIZE=100,
+        FLIGHTLOG_MAX_TOTAL_SIZE=1000,
     )
     def test_rejects_file_that_is_too_large(self):
         uploaded_file = self.make_file(
@@ -297,7 +309,7 @@ class FlightLogUploadFormTests(SimpleTestCase):
         self.assertIn("files", form.errors)
         self.assertIn(
             "tiedosto on liian suuri",
-            str(form.errors["files"]),
+            form.errors["files"][0],
         )
 
 
