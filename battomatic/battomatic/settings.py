@@ -85,3 +85,16 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'charge_event_list'
 LOGOUT_REDIRECT_URL = 'battery_list'
+
+# Flight log import limits
+
+FLIGHTLOG_MAX_FILES = 250
+FLIGHTLOG_MAX_FILE_SIZE = 10 * 1024 * 1024
+FLIGHTLOG_MAX_TOTAL_SIZE = 100 * 1024 * 1024
+
+# Django rejects the request before the form if this is exceeded.
+DATA_UPLOAD_MAX_NUMBER_FILES = FLIGHTLOG_MAX_FILES
+
+# Files larger than this are streamed into temporary files instead of
+# being held entirely in memory.
+FILE_UPLOAD_MAX_MEMORY_SIZE = 2 * 1024 * 1024

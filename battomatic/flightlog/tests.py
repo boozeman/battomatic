@@ -259,6 +259,73 @@ class FlightLogUploadFormTests(SimpleTestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("chemistry", form.errors)
 
+    @override_settings(
+        FLIGHTLOG_MAX_FILES=2,
+        FLIGHTLOG_MAX_FILE_SIZE=100,
+        FLIGHTLOG_MAX_TOTAL_SIZE=150,
+    )
+    def test_rejects_too_many_files(self):
+        files = [
+            self.make_file(name="Model-A-2026-07-10-100000.csv"),
+            self.make_file(name="Model-B-2026-07-10-101000.csv"),
+            self.make_file(name="Model-C-2026-07-10-102000.csv"),
+        ]
+
+        form = self.make_form(files)
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("files", form.errors)
+        self.assertIn(
+            "enintään 2 tiedostoa",
+            str(form.errors["files"]),
+        )
+
+
+    @override_settings(
+        FLIGHTLOG_MAX_FILES=10,
+        FLIGHTLOG_MAX_FILE_SIZE=20,
+        FLIGHTLOG_MAX_TOTAL_SIZE=100,
+    )
+    def test_rejects_file_that_is_too_large(self):
+        uploaded_file = self.make_file(
+            content=b"x" * 21,
+        )
+
+        form = self.make_form(uploaded_file)
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("files", form.errors)
+        self.assertIn(
+            "tiedosto on liian suuri",
+            str(form.errors["files"]),
+        )
+
+
+    @override_settings(
+        FLIGHTLOG_MAX_FILES=10,
+        FLIGHTLOG_MAX_FILE_SIZE=100,
+        FLIGHTLOG_MAX_TOTAL_SIZE=30,
+    )
+    def test_rejects_excessive_total_size(self):
+        first_file = self.make_file(
+            name="Model-A-2026-07-10-100000.csv",
+            content=b"x" * 20,
+        )
+        second_file = self.make_file(
+            name="Model-B-2026-07-10-101000.csv",
+            content=b"x" * 20,
+        )
+
+        form = self.make_form(
+            [first_file, second_file]
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("files", form.errors)
+        self.assertIn(
+            "yhteenlaskettu koko",
+            str(form.errors["files"]),
+        )
 
 class FlightTimeFormattingTests(SimpleTestCase):
     def test_formats_minutes_and_seconds(self):

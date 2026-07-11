@@ -1,8 +1,13 @@
 from pathlib import Path
 
 from django import forms
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
+
+def format_file_size(size: int) -> str:
+    megabytes = size / (1024 * 1024)
+    return f"{megabytes:g} MB"
 
 class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
@@ -61,23 +66,56 @@ class FlightLogUploadForm(forms.Form):
             "Select one or more EdgeTX CSV log files. "
             "Import only logs flown with the same cell count "
             "and battery chemistry at one time."
+            f"Maximum {settings.FLIGHTLOG_MAX_FILES} files, "
+            f"{format_file_size(settings.FLIGHTLOG_MAX_FILE_SIZE)} "
+            "files per import and "
+            f"{format_file_size(settings.FLIGHTLOG_MAX_TOTAL_SIZE)} "
+            "total."
         ),
     )
 
-    def clean_files(self):
-        files = self.cleaned_data["files"]
+def clean_files(self):
+    files = self.cleaned_data["files"]
 
-        for uploaded_file in files:
-            suffix = Path(uploaded_file.name).suffix.lower()
+    max_files = settings.FLIGHTLOG_MAX_FILES
+    max_file_size = settings.FLIGHTLOG_MAX_FILE_SIZE
+    max_total_size = settings.FLIGHTLOG_MAX_TOTAL_SIZE
 
-            if suffix != ".csv":
-                raise ValidationError(
-                    f"{uploaded_file.name}: file must be a CSV file."
-                )
+    if len(files) > max_files:
+        raise ValidationError(
+            f"Voit tuoda kerralla enintään {max_files} tiedostoa. "
+            f"Valittuja tiedostoja oli {len(files)}."
+        )
 
-            if uploaded_file.size == 0:
-                raise ValidationError(
-                    f"{uploaded_file.name}: file is empty."
-                )
+    total_size = 0
 
-        return files
+    for uploaded_file in files:
+        suffix = Path(uploaded_file.name).suffix.lower()
+
+        if suffix != ".csv":
+            raise ValidationError(
+                f"{uploaded_file.name}: tiedoston pitää olla CSV-tiedosto."
+            )
+
+        if uploaded_file.size == 0:
+            raise ValidationError(
+                f"{uploaded_file.name}: tiedosto on tyhjä."
+            )
+
+        if uploaded_file.size > max_file_size:
+            raise ValidationError(
+                f"{uploaded_file.name}: tiedosto on liian suuri. "
+                f"Yhden tiedoston enimmäiskoko on "
+                f"{format_file_size(max_file_size)}."
+            )
+
+        total_size += uploaded_file.size
+
+    if total_size > max_total_size:
+        raise ValidationError(
+            "Tiedostojen yhteenlaskettu koko on liian suuri. "
+            f"Enimmäiskoko on "
+            f"{format_file_size(max_total_size)}."
+        )
+
+    return files
