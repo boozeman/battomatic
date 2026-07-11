@@ -9,6 +9,7 @@ def format_file_size(size: int) -> str:
     megabytes = size / (1024 * 1024)
     return f"{megabytes:g} MB"
 
+
 class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
 
@@ -23,8 +24,8 @@ class MultipleFileField(forms.FileField):
 
         if isinstance(data, (list, tuple)):
             return [
-                single_file_clean(file, initial)
-                for file in data
+                single_file_clean(uploaded_file, initial)
+                for uploaded_file in data
             ]
 
         return [single_file_clean(data, initial)]
@@ -48,74 +49,77 @@ class FlightLogUploadForm(forms.Form):
     ]
 
     cell_count = forms.TypedChoiceField(
-        label="Cell count",
+        label="Kennomäärä",
         choices=CELL_COUNT_CHOICES,
         coerce=int,
         initial=4,
     )
 
     chemistry = forms.ChoiceField(
-        label="Battery chemistry",
+        label="Akkukemia",
         choices=CHEMISTRY_CHOICES,
         initial="lihv",
     )
 
     files = MultipleFileField(
         label="Flight log CSV files",
-        help_text=(
-            "Select one or more EdgeTX CSV log files. "
-            "Import only logs flown with the same cell count "
-            "and battery chemistry at one time."
-            f"Maximum {settings.FLIGHTLOG_MAX_FILES} files, "
-            f"{format_file_size(settings.FLIGHTLOG_MAX_FILE_SIZE)} "
-            "files per import and "
-            f"{format_file_size(settings.FLIGHTLOG_MAX_TOTAL_SIZE)} "
-            "total."
-        ),
+        error_messages={
+            "required": "Valitse vähintään yksi CSV-tiedosto.",
+            "empty": "Tiedosto on tyhjä.",
+        },
     )
 
-def clean_files(self):
-    files = self.cleaned_data["files"]
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    max_files = settings.FLIGHTLOG_MAX_FILES
-    max_file_size = settings.FLIGHTLOG_MAX_FILE_SIZE
-    max_total_size = settings.FLIGHTLOG_MAX_TOTAL_SIZE
-
-    if len(files) > max_files:
-        raise ValidationError(
-            f"Voit tuoda kerralla enintään {max_files} tiedostoa. "
-            f"Valittuja tiedostoja oli {len(files)}."
+        self.fields["files"].help_text = (
+            "Tuo kerralla vain samalla kennomäärällä ja "
+            "akkukemialla lennettyjä lokeja. "
+            f"Enintään {settings.FLIGHTLOG_MAX_FILES} tiedostoa, "
+            f"{format_file_size(settings.FLIGHTLOG_MAX_FILE_SIZE)} "
+            "tiedostoa kohden ja "
+            f"{format_file_size(settings.FLIGHTLOG_MAX_TOTAL_SIZE)} "
+            "yhteensä."
         )
 
-    total_size = 0
+    def clean_files(self):
+        files = self.cleaned_data["files"]
 
-    for uploaded_file in files:
-        suffix = Path(uploaded_file.name).suffix.lower()
+        max_files = settings.FLIGHTLOG_MAX_FILES
+        max_file_size = settings.FLIGHTLOG_MAX_FILE_SIZE
+        max_total_size = settings.FLIGHTLOG_MAX_TOTAL_SIZE
 
-        if suffix != ".csv":
+        if len(files) > max_files:
             raise ValidationError(
-                f"{uploaded_file.name}: tiedoston pitää olla CSV-tiedosto."
+                f"Voit tuoda kerralla enintään {max_files} tiedostoa. "
+                f"Valittuja tiedostoja oli {len(files)}."
             )
 
-        if uploaded_file.size == 0:
+        total_size = 0
+
+        for uploaded_file in files:
+            suffix = Path(uploaded_file.name).suffix.lower()
+
+            if suffix != ".csv":
+                raise ValidationError(
+                    f"{uploaded_file.name}: "
+                    "tiedoston pitää olla CSV-tiedosto."
+                )
+
+            if uploaded_file.size > max_file_size:
+                raise ValidationError(
+                    f"{uploaded_file.name}: tiedosto on liian suuri. "
+                    "Yhden tiedoston enimmäiskoko on "
+                    f"{format_file_size(max_file_size)}."
+                )
+
+            total_size += uploaded_file.size
+
+        if total_size > max_total_size:
             raise ValidationError(
-                f"{uploaded_file.name}: tiedosto on tyhjä."
+                "Tiedostojen yhteenlaskettu koko on liian suuri. "
+                "Enimmäiskoko on "
+                f"{format_file_size(max_total_size)}."
             )
 
-        if uploaded_file.size > max_file_size:
-            raise ValidationError(
-                f"{uploaded_file.name}: tiedosto on liian suuri. "
-                f"Yhden tiedoston enimmäiskoko on "
-                f"{format_file_size(max_file_size)}."
-            )
-
-        total_size += uploaded_file.size
-
-    if total_size > max_total_size:
-        raise ValidationError(
-            "Tiedostojen yhteenlaskettu koko on liian suuri. "
-            f"Enimmäiskoko on "
-            f"{format_file_size(max_total_size)}."
-        )
-
-    return files
+        return files
