@@ -69,9 +69,14 @@ class FlightLogUploadFormTests(SimpleTestCase):
         uploaded_file = self.make_file()
 
         form = FlightLogUploadForm(
-            data={},
-            files={"files": uploaded_file},
-        )
+            data={
+                "cell_count": "4",
+                "chemistry": "lihv",
+            },
+        files={
+            "files": uploaded_file,
+    },
+)
 
         self.assertTrue(form.is_valid(), form.errors)
         self.assertEqual(len(form.cleaned_data["files"]), 1)
@@ -219,9 +224,11 @@ class FlightLogUploadViewTests(SimpleTestCase):
 
         response = self.client.post(
             reverse("flightlog:upload"),
-            data={
-                "files": uploaded_file,
-            },
+                data={
+                   "cell_count": "4",
+                    "chemistry": "lihv",
+                    "files": uploaded_file,
+                },
         )
 
         self.assertEqual(response.status_code, 200)
@@ -249,3 +256,77 @@ class FlightLogUploadViewTests(SimpleTestCase):
             response,
             "CSV-tiedostosta puuttuvat kentät",
         )        
+
+
+def test_cell_count_is_converted_to_integer(self):
+    uploaded_file = self.make_file()
+
+    form = FlightLogUploadForm(
+        data={
+            "cell_count": "4",
+            "chemistry": "lihv",
+        },
+        files={
+            "files": uploaded_file,
+        },
+    )
+
+    self.assertTrue(form.is_valid(), form.errors)
+    self.assertEqual(form.cleaned_data["cell_count"], 4)
+    self.assertIsInstance(
+        form.cleaned_data["cell_count"],
+        int,
+    )
+
+
+def test_accepts_lipo_chemistry(self):
+    uploaded_file = self.make_file()
+
+    form = FlightLogUploadForm(
+        data={
+            "cell_count": "6",
+            "chemistry": "lipo",
+        },
+        files={
+            "files": uploaded_file,
+        },
+    )
+
+    self.assertTrue(form.is_valid(), form.errors)
+    self.assertEqual(form.cleaned_data["cell_count"], 6)
+    self.assertEqual(
+        form.cleaned_data["chemistry"],
+        "lipo",
+    )
+
+
+def test_requires_cell_count(self):
+    uploaded_file = self.make_file()
+
+    form = FlightLogUploadForm(
+        data={
+            "chemistry": "lihv",
+        },
+        files={
+            "files": uploaded_file,
+        },
+    )
+
+    self.assertFalse(form.is_valid())
+    self.assertIn("cell_count", form.errors)
+
+
+def test_requires_chemistry(self):
+    uploaded_file = self.make_file()
+
+    form = FlightLogUploadForm(
+        data={
+            "cell_count": "4",
+        },
+        files={
+            "files": uploaded_file,
+        },
+    )
+
+    self.assertFalse(form.is_valid())
+    self.assertIn("chemistry", form.errors)

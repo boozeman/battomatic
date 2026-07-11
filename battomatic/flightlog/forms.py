@@ -26,9 +26,42 @@ class MultipleFileField(forms.FileField):
 
 
 class FlightLogUploadForm(forms.Form):
+    CELL_COUNT_CHOICES = [
+        (1, "1S"),
+        (2, "2S"),
+        (3, "3S"),
+        (4, "4S"),
+        (5, "5S"),
+        (6, "6S"),
+        (7, "7S"),
+        (8, "8S"),
+    ]
+
+    CHEMISTRY_CHOICES = [
+        ("lipo", "LiPo"),
+        ("lihv", "LiHV"),
+    ]
+
+    cell_count = forms.TypedChoiceField(
+        label="Cell count",
+        choices=CELL_COUNT_CHOICES,
+        coerce=int,
+        initial=4,
+    )
+
+    chemistry = forms.ChoiceField(
+        label="Battery chemistry",
+        choices=CHEMISTRY_CHOICES,
+        initial="lihv",
+    )
+
     files = MultipleFileField(
         label="Flight log CSV files",
-        help_text="Select one or more EdgeTX CSV log files.",
+        help_text=(
+            "Select one or more EdgeTX CSV log files. "
+            "Import only logs flown with the same cell count "
+            "and battery chemistry at one time."
+        ),
     )
 
     def clean_files(self):
