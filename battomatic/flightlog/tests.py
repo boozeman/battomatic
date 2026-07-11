@@ -486,9 +486,10 @@ class FlightSessionBuilderTests(SimpleTestCase):
         start_voltage,
         end_voltage,
         model="Mallinimi",
+        date="2026-07-10",
     ):
         start_datetime = datetime.fromisoformat(
-            f"2026-07-10T{start_time}"
+            f"{date}T{start_time}"
         )
         end_datetime = start_datetime + timedelta(
             seconds=duration_seconds
@@ -496,7 +497,7 @@ class FlightSessionBuilderTests(SimpleTestCase):
 
         return ParsedFlightLog(
             filename=(
-                f"{model}-2026-07-10-"
+                f"{model}-{date}-"
                 f"{start_datetime.strftime('%H%M%S')}.csv"
             ),
             model=model,
@@ -581,6 +582,10 @@ class FlightSessionBuilderTests(SimpleTestCase):
         self.assertEqual(len(sessions), 2)
         self.assertEqual(sessions[0].session_count, 2)
         self.assertEqual(sessions[1].session_count, 1)
+        self.assertEqual(
+            sessions[1].start_reason,
+            "voltage_threshold",
+        )
 
     def test_sorts_flights_before_grouping(self):
         flights = [
@@ -647,18 +652,47 @@ class FlightSessionBuilderTests(SimpleTestCase):
             ),
         ]
 
-    sessions = build_flight_sessions(
-        flights,
-        cell_count=4,
-        chemistry="lihv",
-    )
+        sessions = build_flight_sessions(
+            flights,
+            cell_count=4,
+            chemistry="lihv",
+        )
 
-    self.assertEqual(len(sessions), 2)
-    self.assertEqual(
-        sessions[1].start_reason,
-        "model_changed",
-    )
+        self.assertEqual(len(sessions), 2)
+        self.assertEqual(
+            sessions[1].start_reason,
+            "model_changed",
+        )
 
+    def test_starts_new_session_when_date_changes(self):
+        flights = [
+            self.make_flight(
+                date="2026-07-10",
+                start_time="23:55:00",
+                duration_seconds=180,
+                start_voltage="17.30",
+                end_voltage="15.80",
+            ),
+            self.make_flight(
+                date="2026-07-11",
+                start_time="00:05:00",
+                duration_seconds=190,
+                start_voltage="16.10",
+                end_voltage="15.30",
+            ),
+        ]
+
+        sessions = build_flight_sessions(
+            flights,
+            cell_count=4,
+            chemistry="lihv",
+        )
+
+        self.assertEqual(len(sessions), 2)
+        self.assertEqual(
+            sessions[1].start_reason,
+            "date_changed",
+        )
 
     def test_session_exposes_voltage_threshold(self):
         flights = [
@@ -683,4 +717,29 @@ class FlightSessionBuilderTests(SimpleTestCase):
         self.assertEqual(
             str(sessions[0].start_voltage),
             "17.30",
-        )        
+        )
+
+    def test_first_session_has_first_flight_reason(self):
+        flights = [
+            self.make_flight(
+                start_time="10:00:00",
+                duration_seconds=180,
+                start_voltage="17.30",
+                end_voltage="15.80",
+            ),
+        ]
+
+        sessions = build_flight_sessions(
+            flights,
+            cell_count=4,
+            chemistry="lihv",
+        )
+
+        self.assertEqual(
+            sessions[0].start_reason,
+            "first_flight",
+        )
+        self.assertEqual(
+            sessions[0].start_reason_label,
+            "Ensimmäinen löydetty lento",
+        )
