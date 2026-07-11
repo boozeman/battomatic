@@ -1,61 +1,169 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Import Flight Logs</h1>
+<div class="container py-4">
+    <h1>Flight log import</h1>
 
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
+    <form
+        method="post"
+        enctype="multipart/form-data"
+        class="mb-4"
+    >
+        {% csrf_token %}
 
-    <button type="submit">
-        Parse logs
-    </button>
-</form>
+        {{ form.as_p }}
 
-{% if errors %}
-    <h2>Errors</h2>
+        <button type="submit" class="btn btn-primary">
+            Parse logs
+        </button>
+    </form>
 
-    <ul>
-        {% for error in errors %}
-            <li>
-                <strong>{{ error.filename }}</strong>:
-                {{ error.message }}
-            </li>
+    {% if errors %}
+        <div class="alert alert-danger">
+            <h2 class="h5">Errors</h2>
+
+            <ul class="mb-0">
+                {% for error in errors %}
+                    <li>
+                        <strong>{{ error.filename }}</strong>:
+                        {{ error.message }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    {% if parsed_logs %}
+        <div class="mb-4">
+            <h2>Import summary</h2>
+
+            <p>
+                Flights found:
+                <strong>{{ parsed_logs|length }}</strong>
+            </p>
+
+            <p>
+                Battery sessions found:
+                <strong>{{ flight_sessions|length }}</strong>
+            </p>
+        </div>
+    {% endif %}
+
+    {% if flight_sessions %}
+        <h2>Battery sessions</h2>
+
+        {% for session in flight_sessions %}
+            <section class="card mb-4">
+                <div class="card-body">
+                    <h3 class="card-title">
+                        Battery session {{ forloop.counter }}
+                    </h3>
+
+                    <dl class="row">
+                        <dt class="col-sm-4">Date</dt>
+                        <dd class="col-sm-8">
+                            {{ session.date|date:"Y-m-d" }}
+                        </dd>
+
+                        <dt class="col-sm-4">Model</dt>
+                        <dd class="col-sm-8">
+                            {{ session.model }}
+                        </dd>
+
+                        <dt class="col-sm-4">Cell count</dt>
+                        <dd class="col-sm-8">
+                            {{ session.cell_count }}S
+                        </dd>
+
+                        <dt class="col-sm-4">Chemistry</dt>
+                        <dd class="col-sm-8">
+                            {{ session.chemistry|upper }}
+                        </dd>
+
+                        <dt class="col-sm-4">Start voltage</dt>
+                        <dd class="col-sm-8">
+                            {{ session.start_voltage }} V
+                        </dd>
+
+                        <dt class="col-sm-4">
+                            New battery threshold
+                        </dt>
+                        <dd class="col-sm-8">
+                            {{ session.voltage_threshold }} V
+                        </dd>
+
+                        <dt class="col-sm-4">
+                            Session start reason
+                        </dt>
+                        <dd class="col-sm-8">
+                            {{ session.start_reason_label }}
+                        </dd>
+
+                        <dt class="col-sm-4">Flights</dt>
+                        <dd class="col-sm-8">
+                            {{ session.session_count }}
+                        </dd>
+
+                        <dt class="col-sm-4">Total flight time</dt>
+                        <dd class="col-sm-8">
+                            {{ session.formatted_total_flight_time }}
+                        </dd>
+
+                        <dt class="col-sm-4">Longest flight</dt>
+                        <dd class="col-sm-8">
+                            {{ session.formatted_longest_flight_time }}
+                        </dd>
+
+                        <dt class="col-sm-4">Shortest flight</dt>
+                        <dd class="col-sm-8">
+                            {{ session.formatted_shortest_flight_time }}
+                        </dd>
+                    </dl>
+
+                    <h4>Flights</h4>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Start</th>
+                                    <th>End</th>
+                                    <th>Flight time</th>
+                                    <th>Start voltage</th>
+                                    <th>End voltage</th>
+                                    <th>Filename</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for flight in session.flights %}
+                                    <tr>
+                                        <td>
+                                            {{ flight.start_time|time:"H:i:s" }}
+                                        </td>
+                                        <td>
+                                            {{ flight.end_time|time:"H:i:s" }}
+                                        </td>
+                                        <td>
+                                            {{ flight.formatted_flight_time }}
+                                        </td>
+                                        <td>
+                                            {{ flight.start_voltage }} V
+                                        </td>
+                                        <td>
+                                            {{ flight.end_voltage }} V
+                                        </td>
+                                        <td>
+                                            {{ flight.filename }}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
         {% endfor %}
-    </ul>
-{% endif %}
-
-{% if parsed_logs %}
-    <h2>Parsed logs</h2>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Model</th>
-                <th>Date</th>
-                <th>Start</th>
-                <th>End</th>
-                <th>Flight time</th>
-                <th>Start voltage</th>
-                <th>End voltage</th>
-                <th>Filename</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            {% for log in parsed_logs %}
-                <tr>
-                    <td>{{ log.model }}</td>
-                    <td>{{ log.date|date:"Y-m-d" }}</td>
-                    <td>{{ log.start_time|time:"H:i:s" }}</td>
-                    <td>{{ log.end_time|time:"H:i:s" }}</td>
-                    <td>{{ log.formatted_flight_time }}</td>
-                    <td>{{ log.start_voltage }} V</td>
-                    <td>{{ log.end_voltage }} V</td>
-                    <td>{{ log.filename }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-{% endif %}
+    {% endif %}
+</div>
 {% endblock %}
