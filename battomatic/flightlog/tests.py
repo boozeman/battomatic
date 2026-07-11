@@ -166,14 +166,21 @@ class FlightLogUploadFormTests(SimpleTestCase):
 
         return FlightLogUploadForm(
             data=form_data,
-            files={"files": uploaded_files},
+            files={
+                "files": uploaded_files,
+            },
         )
 
     def test_accepts_one_csv_file(self):
-        form = self.make_form(self.make_file())
+        form = self.make_form(
+            self.make_file(),
+        )
 
         self.assertTrue(form.is_valid(), form.errors)
-        self.assertEqual(len(form.cleaned_data["files"]), 1)
+        self.assertEqual(
+            len(form.cleaned_data["files"]),
+            1,
+        )
 
     def test_accepts_multiple_csv_files(self):
         first_file = self.make_file(
@@ -183,10 +190,15 @@ class FlightLogUploadFormTests(SimpleTestCase):
             name="Model-B-2026-07-10-164500.csv",
         )
 
-        form = self.make_form([first_file, second_file])
+        form = self.make_form(
+            [first_file, second_file],
+        )
 
         self.assertTrue(form.is_valid(), form.errors)
-        self.assertEqual(len(form.cleaned_data["files"]), 2)
+        self.assertEqual(
+            len(form.cleaned_data["files"]),
+            2,
+        )
 
     def test_rejects_non_csv_file(self):
         uploaded_file = self.make_file(
@@ -202,14 +214,19 @@ class FlightLogUploadFormTests(SimpleTestCase):
             form.errors["files"][0],
         )
 
-
     def test_rejects_empty_file(self):
-        uploaded_file = self.make_file(content=b"")
+        uploaded_file = self.make_file(
+            content=b"",
+        )
 
         form = self.make_form(uploaded_file)
 
         self.assertFalse(form.is_valid())
         self.assertIn("files", form.errors)
+        self.assertIn(
+            "tiedosto on tyhjä",
+            form.errors["files"][0],
+        )
 
     def test_cell_count_is_converted_to_integer(self):
         form = self.make_form(
@@ -218,7 +235,10 @@ class FlightLogUploadFormTests(SimpleTestCase):
         )
 
         self.assertTrue(form.is_valid(), form.errors)
-        self.assertEqual(form.cleaned_data["cell_count"], 4)
+        self.assertEqual(
+            form.cleaned_data["cell_count"],
+            4,
+        )
         self.assertIsInstance(
             form.cleaned_data["cell_count"],
             int,
@@ -232,7 +252,10 @@ class FlightLogUploadFormTests(SimpleTestCase):
         )
 
         self.assertTrue(form.is_valid(), form.errors)
-        self.assertEqual(form.cleaned_data["cell_count"], 6)
+        self.assertEqual(
+            form.cleaned_data["cell_count"],
+            6,
+        )
         self.assertEqual(
             form.cleaned_data["chemistry"],
             "lipo",
@@ -291,8 +314,6 @@ class FlightLogUploadFormTests(SimpleTestCase):
             form.errors["files"][0],
         )
 
-
-
     @override_settings(
         FLIGHTLOG_MAX_FILES=10,
         FLIGHTLOG_MAX_FILE_SIZE=20,
@@ -312,7 +333,6 @@ class FlightLogUploadFormTests(SimpleTestCase):
             form.errors["files"][0],
         )
 
-
     @override_settings(
         FLIGHTLOG_MAX_FILES=10,
         FLIGHTLOG_MAX_FILE_SIZE=100,
@@ -329,14 +349,14 @@ class FlightLogUploadFormTests(SimpleTestCase):
         )
 
         form = self.make_form(
-            [first_file, second_file]
+            [first_file, second_file],
         )
 
         self.assertFalse(form.is_valid())
         self.assertIn("files", form.errors)
         self.assertIn(
             "yhteenlaskettu koko",
-            str(form.errors["files"]),
+            form.errors["files"][0],
         )
 
 class FlightTimeFormattingTests(SimpleTestCase):
@@ -381,18 +401,7 @@ class FlightTimeFormattingTests(SimpleTestCase):
         },
     }
 )
-@override_settings(
-    STORAGES={
-        "default": {
-            "BACKEND": "django.core.files.storage.FileSystemStorage",
-        },
-        "staticfiles": {
-            "BACKEND": (
-                "django.contrib.staticfiles.storage.StaticFilesStorage"
-            ),
-        },
-    }
-)
+
 class FlightLogUploadViewTests(SimpleTestCase):
     def make_file(
         self,
