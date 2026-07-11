@@ -17,6 +17,15 @@ from .session_builder import (
     get_new_battery_voltage_threshold,
 )
 
+from datetime import datetime
+from decimal import Decimal
+
+from .parser import ParsedFlightLog
+from .session_builder import (
+    FlightSessionBuildError,
+    build_flight_sessions,
+    get_new_battery_voltage_threshold,
+)
 
 CSV_CONTENT = """Date,Time,FM,Ptch(rad),Roll(rad),Yaw(rad),RxBt(V),Curr(A),Capa(mAh),Bat%(%)
 2026-07-10,16:39:41.300,"AIR",0.00,0.00,0.57,17.1,0.5,4,99
@@ -454,3 +463,167 @@ class FlightSessionVoltageThresholdTests(SimpleTestCase):
                 cell_count=0,
                 chemistry="lipo",
             )
+
+@override_settings(
+    STORAGES={
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": (
+                "django.contrib.staticfiles.storage.StaticFilesStorage"
+            ),
+        },
+    }
+)
+class FlightSessionBuilderTests(SimpleTestCase):
+    def make_flight(
+        self,
+        *,
+        start_time,
+        duration_seconds,
+        start_voltage,
+        end_voltage,
+        model="Mallinimi",
+    ):
+        start_datetime = datetime.fromisoformat(
+            f"2026-07-10T{start_time}"
+        )
+        end_datetime = start_datetime + timedelta(
+            seconds=duration_seconds
+        )
+
+        return ParsedFlightLog(
+            filename=(
+                f"{model}-2026-07-10-"
+                f"{start_datetime.strftime('%H%M%S')}.csv"
+            ),
+            model=model,
+            start_datetime=start_datetime,
+            end_datetime=end_datetime,
+            flight_time=end_datetime - start_datetime,
+            start_voltage=Decimal(start_voltage),
+            end_voltage=Decimal(end_voltage),
+        )
+
+    def test_groups_flights_with_same_battery(self):
+        flights = [
+            self.make_flight(
+                start_time="10:00:00",
+                duration_seconds=180,
+                start_voltage="17.30",
+                end_voltage="15.90",
+            ),
+            self.make_flight(
+                start_time="10:05:00",
+                duration_seconds=200,
+                start_voltage="16.20",
+                end_voltage="15.40",
+            ),
+            self.make_flight(
+                start_time="10:10:00",
+                duration_seconds=160,
+                start_voltage="15.80",
+                end_voltage="15.10",
+            ),
+        ]
+
+        sessions = build_flight_sessions(
+            flights,
+            cell_count=4,
+            chemistry="lihv",
+        )
+
+        self.assertEqual(len(sessions), 1)
+        self.assertEqual(sessions[0].session_count, 3)
+        self.assertEqual(
+            sessions[0].formatted_total_flight_time,
+            "09:00",
+        )
+        self.assertEqual(
+            sessions[0].formatted_longest_flight_time,
+            "03:20",
+        )
+        self.assertEqual(
+            sessions[0].formatted_shortest_flight_time,
+            "02:40",
+        )
+
+    def test_starts_new_session_at_full_battery_voltage(self):
+        flights = [
+            self.make_flight(
+                start_time="10:00:00",
+                duration_seconds=180,
+                start_voltage="17.30",
+                end_voltage="15.80",
+            ),
+            self.make_flight(
+                start_time="10:05:00",
+                duration_seconds=190,
+                start_voltage="16.10",
+                end_voltage="15.30",
+            ),
+            self.make_flight(
+                start_time="10:20:00",
+                duration_seconds=210,
+                start_voltage="17.20",
+                end_voltage="15.70",
+            ),
+        ]
+
+        sessions = build_flight_sessions(
+            flights,
+            cell_count=4,
+            chemistry="lihv",
+        )
+
+        self.assertEqual(len(sessions), 2)
+        self.assertEqual(sessions[0].session_count, 2)
+        self.assertEqual(sessions[1].session_count, 1)
+
+    def test_sorts_flights_before_grouping(self):
+        flights = [
+            self.make_flight(
+                start_time="10:20:00",
+                duration_seconds=210,
+                start_voltage="17.20",
+                end_voltage="15.70",
+            ),
+            self.make_flight(
+                start_time="10:00:00",
+                duration_seconds=180,
+                start_voltage="17.30",
+                end_voltage="15.80",
+            ),
+            self.make_flight(
+                start_time="10:05:00",
+                duration_seconds=190,
+                start_voltage="16.10",
+                end_voltage="15.30",
+            ),
+        ]
+
+        sessions = build_flight_sessions(
+            flights,
+            cell_count=4,
+            chemistry="lihv",
+        )
+
+        self.assertEqual(len(sessions), 2)
+        self.assertEqual(
+            sessions[0].flights[0].start_time.isoformat(),
+            "10:00:00",
+        )
+        self.assertEqual(
+            sessions[1].flights[0].start_time.isoformat(),
+            "10:20:00",
+        )
+
+    def test_returns_empty_list_for_no_flights(self):
+        sessions = build_flight_sessions(
+            [],
+            cell_count=4,
+            chemistry="lihv",
+        )
+
+        self.assertEqual(sessions, [])

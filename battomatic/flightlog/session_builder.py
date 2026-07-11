@@ -84,3 +84,54 @@ def get_new_battery_voltage_threshold(
         ) from error
 
     return per_cell_voltage * cell_count
+
+
+def build_flight_sessions(
+    flights: list[ParsedFlightLog],
+    *,
+    cell_count: int,
+    chemistry: str,
+) -> list[FlightSession]:
+    if not flights:
+        return []
+
+    threshold = get_new_battery_voltage_threshold(
+        cell_count=cell_count,
+        chemistry=chemistry,
+    )
+
+    ordered_flights = sorted(
+        flights,
+        key=lambda flight: flight.start_datetime,
+    )
+
+    sessions = []
+    current_flights = []
+
+    for flight in ordered_flights:
+        starts_with_new_battery = (
+            flight.start_voltage >= threshold
+        )
+
+        if starts_with_new_battery and current_flights:
+            sessions.append(
+                FlightSession(
+                    flights=tuple(current_flights),
+                    cell_count=cell_count,
+                    chemistry=chemistry,
+                )
+            )
+            current_flights = []
+
+        current_flights.append(flight)
+
+    if current_flights:
+        sessions.append(
+            FlightSession(
+                flights=tuple(current_flights),
+                cell_count=cell_count,
+                chemistry=chemistry,
+            )
+        )
+
+    return sessions
