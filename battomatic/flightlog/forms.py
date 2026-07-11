@@ -76,7 +76,7 @@ class FlightLogUploadForm(forms.Form):
             "Import only one model, cell count or chemistry logs at the time "            
             f"Max {settings.FLIGHTLOG_MAX_FILES} files, "
             f"{format_file_size(settings.FLIGHTLOG_MAX_FILE_SIZE)} "
-            "for size and "
+            "for size of each and "
             f"{format_file_size(settings.FLIGHTLOG_MAX_TOTAL_SIZE)} "
             "files total."
         )
