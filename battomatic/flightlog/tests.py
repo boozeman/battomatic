@@ -1,4 +1,5 @@
 from datetime import timedelta
+from django.test import SimpleTestCase, override_settings
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase
@@ -106,6 +107,18 @@ class FlightLogParserTests(SimpleTestCase):
         self.assertEqual(str(second_flight.end_voltage), "16.9")
 
 
+@override_settings(
+    STORAGES={
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": (
+                "django.contrib.staticfiles.storage.StaticFilesStorage"
+            ),
+        },
+    }
+)
 class FlightLogUploadFormTests(SimpleTestCase):
     def make_file(
         self,
