@@ -15,11 +15,6 @@
     </div>
 
     <div class="metric">
-      Model
-      <span>{{ battery.model }}</span>
-    </div>
-
-    <div class="metric">
       Capacity
       <span>{{ battery.capacity_mah }} mAh</span>
     </div>
@@ -29,16 +24,6 @@
       <span>{{ battery.get_chemistry_display }}</span>
     </div>
 
-    <div class="metric">
-      Cells
-      <span>{{ battery.cell_count }}S</span>
-    </div>
-
-    <div class="metric">
-      Connector
-      <span>{{ battery.get_connector_display }}</span>
-    </div>
-  </div>
 </div>
 
 <form method="post" class="card space-y-4">
