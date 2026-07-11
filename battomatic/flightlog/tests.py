@@ -224,7 +224,7 @@ class FlightLogUploadFormTests(SimpleTestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("files", form.errors)
         self.assertIn(
-            "tiedosto on tyhjä",
+            "Tiedosto on tyhjä.",
             form.errors["files"][0],
         )
 
