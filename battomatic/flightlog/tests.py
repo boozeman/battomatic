@@ -630,22 +630,22 @@ class FlightSessionBuilderTests(SimpleTestCase):
         self.assertEqual(sessions, [])
 
     def test_starts_new_session_when_model_changes(self):
-    flights = [
-        self.make_flight(
-            start_time="10:00:00",
-            duration_seconds=180,
-            start_voltage="17.30",
-            end_voltage="15.80",
-            model="Model-A",
-        ),
-        self.make_flight(
-            start_time="10:05:00",
-            duration_seconds=190,
-            start_voltage="16.10",
-            end_voltage="15.30",
-            model="Model-B",
-        ),
-    ]
+        flights = [
+            self.make_flight(
+                start_time="10:00:00",
+                duration_seconds=180,
+                start_voltage="17.30",
+                end_voltage="15.80",
+                model="Model-A",
+            ),
+            self.make_flight(
+                start_time="10:05:00",
+                duration_seconds=190,
+                start_voltage="16.10",
+                end_voltage="15.30",
+                model="Model-B",
+            ),
+        ]
 
     sessions = build_flight_sessions(
         flights,
