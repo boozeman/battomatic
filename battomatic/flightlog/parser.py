@@ -15,6 +15,10 @@ FILENAME_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
+def format_duration(duration: timedelta) -> str:
+    total_seconds = max(0, int(duration.total_seconds()))
+
+    minutes, seconds = divmod(total_seconds, 60)
 
 class FlightLogParseError(ValueError):
     """Raised when a flight log cannot be parsed."""
@@ -209,3 +213,11 @@ def parse_flight_log(uploaded_file) -> ParsedFlightLog:
         )
 
     return parsed_logs[0]
+
+
+def format_duration(duration: timedelta) -> str:
+    total_seconds = max(0, int(duration.total_seconds()))
+
+    minutes, seconds = divmod(total_seconds, 60)
+
+    return f"{minutes:02d}:{seconds:02d}"
