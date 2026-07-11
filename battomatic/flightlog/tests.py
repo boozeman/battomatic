@@ -358,6 +358,7 @@ class FlightLogUploadViewTests(SimpleTestCase):
         self.assertContains(response, "03:42")
         self.assertContains(response, "17.1 V")
         self.assertContains(response, "15.8 V")
+        self.assertEqual(len(response.context["flight_sessions"]), 1,)
 
     def test_invalid_log_error_is_displayed(self):
         uploaded_file = self.make_file(
@@ -627,3 +628,59 @@ class FlightSessionBuilderTests(SimpleTestCase):
         )
 
         self.assertEqual(sessions, [])
+
+    def test_starts_new_session_when_model_changes(self):
+    flights = [
+        self.make_flight(
+            start_time="10:00:00",
+            duration_seconds=180,
+            start_voltage="17.30",
+            end_voltage="15.80",
+            model="Model-A",
+        ),
+        self.make_flight(
+            start_time="10:05:00",
+            duration_seconds=190,
+            start_voltage="16.10",
+            end_voltage="15.30",
+            model="Model-B",
+        ),
+    ]
+
+    sessions = build_flight_sessions(
+        flights,
+        cell_count=4,
+        chemistry="lihv",
+    )
+
+    self.assertEqual(len(sessions), 2)
+    self.assertEqual(
+        sessions[1].start_reason,
+        "model_changed",
+    )
+
+
+    def test_session_exposes_voltage_threshold(self):
+        flights = [
+            self.make_flight(
+                start_time="10:00:00",
+                duration_seconds=180,
+                start_voltage="17.30",
+                end_voltage="15.80",
+            ),
+        ]
+
+        sessions = build_flight_sessions(
+            flights,
+            cell_count=4,
+            chemistry="lihv",
+        )
+
+        self.assertEqual(
+            str(sessions[0].voltage_threshold),
+            "17.00",
+        )
+        self.assertEqual(
+            str(sessions[0].start_voltage),
+            "17.30",
+        )        

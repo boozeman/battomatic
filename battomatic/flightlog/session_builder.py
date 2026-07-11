@@ -20,6 +20,7 @@ class FlightSession:
     flights: tuple[ParsedFlightLog, ...]
     cell_count: int
     chemistry: str
+    start_reason: str = "first_flight"
 
     @property
     def date(self):
@@ -32,6 +33,31 @@ class FlightSession:
     @property
     def session_count(self):
         return len(self.flights)
+
+    @property
+    def start_voltage(self) -> Decimal:
+        return self.flights[0].start_voltage
+
+    @property
+    def voltage_threshold(self) -> Decimal:
+        return get_new_battery_voltage_threshold(
+            cell_count=self.cell_count,
+            chemistry=self.chemistry,
+        )
+
+    @property
+    def start_reason_label(self) -> str:
+        labels = {
+            "first_flight": "Ensimmäinen löydetty lento",
+            "voltage_threshold": "Alkujännite ylitti uuden akun rajan",
+            "model_changed": "Mallin nimi vaihtui",
+            "date_changed": "Päivämäärä vaihtui",
+        }
+
+        return labels.get(
+            self.start_reason,
+            self.start_reason,
+        )
 
     @property
     def total_flight_time(self) -> timedelta:
@@ -65,7 +91,6 @@ class FlightSession:
     @property
     def formatted_shortest_flight_time(self) -> str:
         return format_duration(self.shortest_flight_time)
-
 
 def get_new_battery_voltage_threshold(
     cell_count: int,
@@ -107,21 +132,37 @@ def build_flight_sessions(
 
     sessions = []
     current_flights = []
+    current_start_reason = "first_flight"
 
     for flight in ordered_flights:
-        starts_with_new_battery = (
-            flight.start_voltage >= threshold
-        )
+        if not current_flights:
+            current_flights.append(flight)
+            continue
 
-        if starts_with_new_battery and current_flights:
+        previous_flight = current_flights[-1]
+        new_session_reason = None
+
+        if flight.date != previous_flight.date:
+            new_session_reason = "date_changed"
+
+        elif flight.model != previous_flight.model:
+            new_session_reason = "model_changed"
+
+        elif flight.start_voltage >= threshold:
+            new_session_reason = "voltage_threshold"
+
+        if new_session_reason is not None:
             sessions.append(
                 FlightSession(
                     flights=tuple(current_flights),
                     cell_count=cell_count,
                     chemistry=chemistry,
+                    start_reason=current_start_reason,
                 )
             )
+
             current_flights = []
+            current_start_reason = new_session_reason
 
         current_flights.append(flight)
 
@@ -131,6 +172,7 @@ def build_flight_sessions(
                 flights=tuple(current_flights),
                 cell_count=cell_count,
                 chemistry=chemistry,
+                start_reason=current_start_reason,
             )
         )
 
