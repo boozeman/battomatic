@@ -18,7 +18,18 @@ CSV_CONTENT = """Date,Time,FM,Ptch(rad),Roll(rad),Yaw(rad),RxBt(V),Curr(A),Capa(
 2026-07-10,16:39:42.300,"AIR",0.00,0.00,0.57,17.1,0.8,4,99
 """
 
-
+@override_settings(
+    STORAGES={
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": (
+                "django.contrib.staticfiles.storage.StaticFilesStorage"
+            ),
+        },
+    }
+)
 class FlightLogParserTests(SimpleTestCase):
     def make_file(
         self,
@@ -265,7 +276,30 @@ class FlightTimeFormattingTests(SimpleTestCase):
             "00:00",
         )
 
-
+@override_settings(
+    STORAGES={
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": (
+                "django.contrib.staticfiles.storage.StaticFilesStorage"
+            ),
+        },
+    }
+)
+@override_settings(
+    STORAGES={
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": (
+                "django.contrib.staticfiles.storage.StaticFilesStorage"
+            ),
+        },
+    }
+)
 class FlightLogUploadViewTests(SimpleTestCase):
     def make_file(
         self,
