@@ -1,55 +1,75 @@
-    {% if errors %}
-        <div class="alert alert-danger">
-            <h2 class="h5">Errors</h2>
+{% if form.errors %}
+    <div class="alert alert-danger">
+        <h2 class="h5">Unable to create preview</h2>
 
-            <ul class="mb-0">
-                {% for error in errors %}
-                    <li>
-                        <strong>{{ error.filename }}</strong>:
-                        {{ error.message }}
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-    {% endif %}
-
-    {% if duplicate_flights %}
-    <div class="alert alert-warning">
-        <h2 class="h5">Duplicate flights detected</h2>
-
-        <p>
-            The preview was not created because the same flight
-            appears more than once in the selected files.
-        </p>
+        {{ form.non_field_errors }}
 
         <ul class="mb-0">
-            {% for duplicate in duplicate_flights %}
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <li>
+                        <strong>{{ field.label }}</strong>:
+                        {{ error }}
+                    </li>
+                {% endfor %}
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+    
+    
+{% if errors %}
+    <div class="alert alert-danger">
+        <h2 class="h5">Errors</h2>
+
+        <ul class="mb-0">
+            {% for error in errors %}
                 <li>
-                    <strong>{{ duplicate.filename }}</strong>
-                    —
-                    {{ duplicate.start_datetime|date:"Y-m-d H:i:s" }}
+                    <strong>{{ error.filename }}</strong>:
+                    {{ error.message }}
                 </li>
             {% endfor %}
         </ul>
     </div>
-    {% endif %}
+{% endif %}
 
-    {% if parsed_logs %}
-        <div class="card mb-6">
-            <h2 class="text-xl font-bold mb-4">Import summary</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="metric">
-                    Flights found:
-                    <strong>{{ parsed_logs|length }}</strong>
-                </div>
+{% if duplicate_flights %}
+<div class="alert alert-warning">
+    <h2 class="h5">Duplicate flights detected</h2>
 
-                <div class="metric">
-                    Battery sessions found:
-                    <strong>{{ flight_sessions|length }}</strong>
-                </div>
+    <p>
+        The preview was not created because the same flight
+        appears more than once in the selected files.
+    </p>
+
+    <ul class="mb-0">
+        {% for duplicate in duplicate_flights %}
+            <li>
+                <strong>{{ duplicate.filename }}</strong>
+                —
+                {{ duplicate.start_datetime|date:"Y-m-d H:i:s" }}
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if parsed_logs %}
+    <div class="card mb-6">
+        <h2 class="text-xl font-bold mb-4">Import summary</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="metric">
+                Flights found:
+                <strong>{{ parsed_logs|length }}</strong>
+            </div>
+
+            <div class="metric">
+                Battery sessions found:
+                <strong>{{ flight_sessions|length }}</strong>
             </div>
         </div>
-    {% endif %}
+    </div>
+{% endif %}
 
 {% if flight_sessions %}
     <h2 class="text-xl font-bold mb-4">Battery sessions</h2>

@@ -567,6 +567,58 @@ foo,bar
         self.assertEqual(preview.flight_count, 1)
         self.assertEqual(preview.session_count, 1)
 
+    def test_preview_endpoint_returns_preview_fragment(self):
+        response = self.client.post(
+            reverse("flightlog:preview"),
+            data={
+                "cell_count": "4",
+                "chemistry": "lihv",
+                "files": self.make_file(),
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response,
+            "flightlog/_preview.html",
+        )
+        self.assertContains(
+            response,
+            "Battery session 1",
+        )
+        self.assertEqual(
+            response.context["preview"].flight_count,
+            1,
+        )
+        self.assertEqual(
+            response.context["preview"].session_count,
+            1,
+        )
+
+
+    def test_preview_endpoint_rejects_get_request(self):
+        response = self.client.get(
+            reverse("flightlog:preview"),
+        )
+
+        self.assertEqual(response.status_code, 405)
+
+
+    def test_preview_endpoint_returns_form_errors(self):
+        response = self.client.post(
+            reverse("flightlog:preview"),
+            data={
+                "cell_count": "4",
+                "chemistry": "lihv",
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertContains(
+            response,
+            "Unable to create preview",
+            status_code=400,
+        )
 
 @override_settings(
     STORAGES={

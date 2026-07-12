@@ -10,4 +10,9 @@ urlpatterns = [
         views.upload_flight_logs,
         name="upload",
     ),
+    path(
+        "preview/",
+        views.preview_flight_logs,
+        name="preview",
+    ),
 ]
