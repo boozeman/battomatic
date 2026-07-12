@@ -48,10 +48,10 @@ class FlightSessionPreview:
     @property
     def start_reason_label(self) -> str:
         labels = {
-            "first_flight": "Ensimmäinen löydetty lento",
-            "voltage_threshold": "Alkujännite ylitti uuden akun rajan",
-            "model_changed": "Mallin nimi vaihtui",
-            "date_changed": "Päivämäärä vaihtui",
+            "first_flight": "First flight on logset",
+            "voltage_threshold": "Starting Voltage Above Treshold for New Battery",
+            "model_changed": "Model name changed",
+            "date_changed": "Date changed",
         }
 
         return labels.get(
@@ -98,14 +98,14 @@ def get_new_battery_voltage_threshold(
 ) -> Decimal:
     if cell_count < 1:
         raise FlightSessionBuildError(
-            "Kennomäärän pitää olla vähintään yksi."
+            "Cell Count must be at least 1"
         )
 
     try:
         per_cell_voltage = NEW_BATTERY_CELL_VOLTAGE[chemistry]
     except KeyError as error:
         raise FlightSessionBuildError(
-            f"Tuntematon akkukemia: {chemistry}"
+            f"Unknown Chemistry: {chemistry}"
         ) from error
 
     return per_cell_voltage * cell_count

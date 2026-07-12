@@ -49,14 +49,14 @@ class FlightLogUploadForm(forms.Form):
     ]
 
     cell_count = forms.TypedChoiceField(
-        label="Kennomäärä",
+        label="Cell Count",
         choices=CELL_COUNT_CHOICES,
         coerce=int,
         initial=4,
     )
 
     chemistry = forms.ChoiceField(
-        label="Akkukemia",
+        label="Chemistry",
         choices=CHEMISTRY_CHOICES,
         initial="lihv",
     )
@@ -73,13 +73,12 @@ class FlightLogUploadForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         self.fields["files"].help_text = (
-            "Tuo kerralla vain samalla kennomäärällä ja "
-            "akkukemialla lennettyjä lokeja. "
-            f"Enintään {settings.FLIGHTLOG_MAX_FILES} tiedostoa, "
+            "Import only one model, cell count or chemistry logs at the time "            
+            f"Max {settings.FLIGHTLOG_MAX_FILES} files, "
             f"{format_file_size(settings.FLIGHTLOG_MAX_FILE_SIZE)} "
-            "tiedostoa kohden ja "
+            "for size of each and "
             f"{format_file_size(settings.FLIGHTLOG_MAX_TOTAL_SIZE)} "
-            "yhteensä."
+            "files total."
         )
 
     def clean_files(self):
@@ -91,8 +90,8 @@ class FlightLogUploadForm(forms.Form):
 
         if len(files) > max_files:
             raise ValidationError(
-                f"Voit tuoda kerralla enintään {max_files} tiedostoa. "
-                f"Valittuja tiedostoja oli {len(files)}."
+                f"You can import {max_files} files. "
+                f"{len(files)} imported."
             )
 
         total_size = 0
@@ -103,13 +102,13 @@ class FlightLogUploadForm(forms.Form):
             if suffix != ".csv":
                 raise ValidationError(
                     f"{uploaded_file.name}: "
-                    "tiedoston pitää olla CSV-tiedosto."
+                    "Not a csv-file"
                 )
 
             if uploaded_file.size > max_file_size:
                 raise ValidationError(
-                    f"{uploaded_file.name}: tiedosto on liian suuri. "
-                    "Yhden tiedoston enimmäiskoko on "
+                    f"{uploaded_file.name}: too big file. "
+                    "One file size limit is "
                     f"{format_file_size(max_file_size)}."
                 )
 
@@ -117,8 +116,8 @@ class FlightLogUploadForm(forms.Form):
 
         if total_size > max_total_size:
             raise ValidationError(
-                "Tiedostojen yhteenlaskettu koko on liian suuri. "
-                "Enimmäiskoko on "
+                "Too many files at once. "
+                "Max files are "
                 f"{format_file_size(max_total_size)}."
             )
 

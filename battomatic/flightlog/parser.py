@@ -57,8 +57,8 @@ def parse_model_name(filename: str) -> str:
 
     if not match:
         raise FlightLogParseError(
-            "Tiedostonimen pitää olla muodossa "
-            "Mallinimi-YYYY-MM-DD-HHmmSS.csv."
+            "File name must be "
+            "ModelName-YYYY-MM-DD-HHmmSS.csv."
         )
 
     return match.group("model")
@@ -96,7 +96,7 @@ def build_parsed_log(
 
     if end_datetime < start_datetime:
         raise FlightLogParseError(
-            "Lokin loppuaika on ennen aloitusaikaa."
+            "Log Ending time Before Starting time."
         )
 
     try:
@@ -104,7 +104,7 @@ def build_parsed_log(
         end_voltage = Decimal(last_row["RxBt(V)"].strip())
     except (AttributeError, ArithmeticError, ValueError) as error:
         raise FlightLogParseError(
-            "RxBt(V)-kentässä on virheellinen jännitearvo."
+            "RxBt(V)-field has incorrect Voltage value."
         ) from error
 
     return ParsedFlightLog(
@@ -135,7 +135,7 @@ def parse_flight_logs(uploaded_file) -> list[ParsedFlightLog]:
 
         if reader.fieldnames is None:
             raise FlightLogParseError(
-                "CSV-tiedostosta puuttuu otsikkorivi."
+                "CSV-file has no Header."
             )
 
         required_fields = {"Date", "Time", "RxBt(V)"}
@@ -144,7 +144,7 @@ def parse_flight_logs(uploaded_file) -> list[ParsedFlightLog]:
         if missing_fields:
             missing = ", ".join(sorted(missing_fields))
             raise FlightLogParseError(
-                f"CSV-tiedostosta puuttuvat kentät: {missing}"
+                f"CSV-file has missing fields: {missing}"
             )
 
         parsed_logs = []
@@ -195,7 +195,7 @@ def parse_flight_logs(uploaded_file) -> list[ParsedFlightLog]:
 
         if not parsed_logs:
             raise FlightLogParseError(
-                "CSV-tiedostossa ei ole kelvollisia lentorivejä."
+                "CSV-file does not Contain Meaningful Flight Data."
             )
 
         return parsed_logs
@@ -209,7 +209,7 @@ def parse_flight_log(uploaded_file) -> ParsedFlightLog:
 
     if len(parsed_logs) != 1:
         raise FlightLogParseError(
-            f"CSV-tiedosto sisältää {len(parsed_logs)} lentojaksoa."
+            f"CSV-file contains {len(parsed_logs)} Flights."
         )
 
     return parsed_logs[0]
