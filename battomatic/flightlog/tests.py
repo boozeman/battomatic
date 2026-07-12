@@ -47,7 +47,7 @@ CSV_CONTENT = """Date,Time,FM,Ptch(rad),Roll(rad),Yaw(rad),RxBt(V),Curr(A),Capa(
 class FlightLogParserTests(SimpleTestCase):
     def make_file(
         self,
-        name="Mallinimi-2026-07-10-163941.csv",
+        name="ModelName-2026-07-10-163941.csv",
         content=CSV_CONTENT,
     ):
         return SimpleUploadedFile(
@@ -147,7 +147,7 @@ class FlightLogParserTests(SimpleTestCase):
 class FlightLogUploadFormTests(SimpleTestCase):
     def make_file(
         self,
-        name="Mallinimi-2026-07-10-163941.csv",
+        name="ModelName-2026-07-10-163941.csv",
         content=b"Date,Time,RxBt(V)\n"
         b"2026-07-10,16:39:41.300,17.1\n",
     ):
@@ -210,7 +210,7 @@ class FlightLogUploadFormTests(SimpleTestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("files", form.errors)
         self.assertIn(
-            "tiedoston pitää olla CSV-tiedosto",
+            "Not a csv-file",
             form.errors["files"][0],
         )
 
@@ -224,7 +224,7 @@ class FlightLogUploadFormTests(SimpleTestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("files", form.errors)
         self.assertIn(
-            "Tiedosto on tyhjä.",
+            "File is empty.",
             form.errors["files"][0],
         )
 
@@ -331,7 +331,7 @@ class FlightLogUploadFormTests(SimpleTestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("files", form.errors)
         self.assertIn(
-            "enintään 2 tiedostoa",
+            "import 2 files",
             form.errors["files"][0],
         )
 
