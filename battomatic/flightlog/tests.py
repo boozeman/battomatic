@@ -376,7 +376,7 @@ class FlightLogUploadFormTests(SimpleTestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("files", form.errors)
         self.assertIn(
-            "files total",
+            "Too many files at once.",
             form.errors["files"][0],
         )
 
