@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from django.test import SimpleTestCase, override_settings
 from decimal import Decimal
+from .preview import find_duplicate_flights
 
 from django.db import IntegrityError, transaction
 from django.test import TestCase
@@ -1192,3 +1193,76 @@ class FlightModelTests(TestCase):
                     end_voltage=Decimal("15.80"),
                     filename=flight.filename,
                 )
+
+class FlightPreviewDuplicateTests(SimpleTestCase):
+    def make_flight(
+        self,
+        *,
+        filename="Mallinimi-2026-07-10-163941.csv",
+        start_time="16:39:41",
+        duration_seconds=180,
+    ):
+        start_datetime = datetime.fromisoformat(
+            f"2026-07-10T{start_time}"
+        )
+        end_datetime = start_datetime + timedelta(
+            seconds=duration_seconds
+        )
+
+        return ParsedFlightLog(
+            filename=filename,
+            model="Mallinimi",
+            start_datetime=start_datetime,
+            end_datetime=end_datetime,
+            flight_time=end_datetime - start_datetime,
+            start_voltage=Decimal("17.30"),
+            end_voltage=Decimal("15.80"),
+        )
+
+    def test_finds_duplicate_flight(self):
+        flight = self.make_flight()
+
+        duplicates = find_duplicate_flights(
+            [flight, flight]
+        )
+
+        self.assertEqual(len(duplicates), 1)
+        self.assertEqual(
+            duplicates[0].filename,
+            flight.filename,
+        )
+        self.assertEqual(
+            duplicates[0].start_datetime,
+            flight.start_datetime,
+        )
+
+    def test_different_flights_are_not_duplicates(self):
+        flights = [
+            self.make_flight(
+                start_time="16:39:41",
+            ),
+            self.make_flight(
+                filename="Mallinimi-2026-07-10-165000.csv",
+                start_time="16:50:00",
+            ),
+        ]
+
+        duplicates = find_duplicate_flights(flights)
+
+        self.assertEqual(duplicates, [])
+
+    def test_same_filename_with_different_segments_is_allowed(self):
+        flights = [
+            self.make_flight(
+                start_time="16:39:41",
+                duration_seconds=180,
+            ),
+            self.make_flight(
+                start_time="16:50:00",
+                duration_seconds=200,
+            ),
+        ]
+
+        duplicates = find_duplicate_flights(flights)
+
+        self.assertEqual(duplicates, [])
