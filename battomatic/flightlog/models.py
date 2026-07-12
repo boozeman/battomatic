@@ -1,102 +1,13 @@
-import uuid
 from datetime import timedelta
 
 from django.db import models
 from django.db.models import Max, Min, Sum
-from django.utils import timezone
-
-
-def default_preview_expiry():
-    return timezone.now() + timedelta(hours=24)
-
-
-class FlightImport(models.Model):
-    class Status(models.TextChoices):
-        PREVIEW = "preview", "Preview"
-        COMMITTED = "committed", "Committed"
-
-    public_id = models.UUIDField(
-        default=uuid.uuid4,
-        unique=True,
-        editable=False,
-    )
-
-    status = models.CharField(
-        max_length=10,
-        choices=Status.choices,
-        default=Status.PREVIEW,
-        db_index=True,
-    )
-
-    cell_count = models.PositiveSmallIntegerField()
-
-    chemistry = models.CharField(
-        max_length=4,
-        choices=[
-            ("lipo", "LiPo"),
-            ("lihv", "LiHV"),
-        ],
-    )
-
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-    )
-
-    updated_at = models.DateTimeField(
-        auto_now=True,
-    )
-
-    expires_at = models.DateTimeField(
-        default=default_preview_expiry,
-        db_index=True,
-    )
-
-    committed_at = models.DateTimeField(
-        null=True,
-        blank=True,
-    )
-
-    class Meta:
-        ordering = [
-            "-created_at",
-        ]
-
-    def __str__(self):
-        return (
-            f"{self.public_id} - "
-            f"{self.cell_count}S "
-            f"{self.get_chemistry_display()} - "
-            f"{self.get_status_display()}"
-        )
-
-    @property
-    def is_preview(self):
-        return self.status == self.Status.PREVIEW
-
-    @property
-    def is_committed(self):
-        return self.status == self.Status.COMMITTED
-
-    @property
-    def is_expired(self):
-        return (
-            self.is_preview
-            and self.expires_at <= timezone.now()
-        )
 
 
 class FlightSession(models.Model):
     class Chemistry(models.TextChoices):
         LIPO = "lipo", "LiPo"
         LIHV = "lihv", "LiHV"
-
-    flight_import = models.ForeignKey(
-        FlightImport,
-        on_delete=models.CASCADE,
-        related_name="sessions",
-        null=True,
-        blank=True,
-    )
 
     aircraft_name = models.CharField(
         max_length=100,
