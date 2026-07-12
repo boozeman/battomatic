@@ -29,6 +29,12 @@ from .services.session_builder import (
     get_new_battery_voltage_threshold,
 )
 
+import inspect
+from flightlog.views import preview_flight_logs
+
+print(inspect.getfile(preview_flight_logs))
+print(inspect.getsource(preview_flight_logs))
+
 CSV_CONTENT = """Date,Time,FM,Ptch(rad),Roll(rad),Yaw(rad),RxBt(V),Curr(A),Capa(mAh),Bat%(%)
 2026-07-10,16:39:41.300,"AIR",0.00,0.00,0.57,17.1,0.5,4,99
 2026-07-10,16:39:42.300,"AIR",0.00,0.00,0.57,17.1,0.8,4,99
