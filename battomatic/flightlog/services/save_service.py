@@ -18,7 +18,7 @@ class SavedImportResult:
 
 
 @transaction.atomic
-def save_import_preview(
+def persist_import_preview(
     preview: ImportPreview,
 ) -> SavedImportResult:
     if not preview.is_valid:

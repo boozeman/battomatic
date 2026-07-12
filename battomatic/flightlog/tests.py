@@ -20,7 +20,7 @@ from .services.parser import (
 from .services.preview import find_duplicate_flights
 from .services.save_service import (
     ImportSaveError,
-    save_import_preview,
+    persist_import_preview,
 )
 from .services.session_builder import (
     FlightSessionBuildError,
@@ -1436,7 +1436,7 @@ class ImportSaveServiceTests(TestCase):
             chemistry="lihv",
         )
 
-        result = save_import_preview(preview)
+        result = persist_import_preview(preview)
 
         self.assertEqual(result.session_count, 1)
         self.assertEqual(result.flight_count, 1)
@@ -1501,7 +1501,7 @@ class ImportSaveServiceTests(TestCase):
             chemistry="lihv",
         )
 
-        result = save_import_preview(preview)
+        result = persist_import_preview(preview)
 
         self.assertEqual(result.session_count, 2)
         self.assertEqual(result.flight_count, 3)
@@ -1528,7 +1528,7 @@ foo,bar
         )
 
         with self.assertRaises(ImportSaveError):
-            save_import_preview(preview)
+            persist_import_preview(preview)
 
         self.assertEqual(
             FlightSession.objects.count(),
