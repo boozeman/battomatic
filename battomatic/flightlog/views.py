@@ -25,33 +25,42 @@ def upload_flight_logs(request):
 
 @require_POST
 def preview_flight_logs(request):
-    form = FlightLogUploadForm(
-        request.POST,
-        request.FILES,
-    )
+    form = FlightLogUploadForm(request.POST, request.FILES)
 
-    form_is_valid = form.is_valid()
-    preview = None
-
-    if form_is_valid:
-        preview = build_import_preview(
-            uploaded_files=form.cleaned_data["files"],
-            cell_count=form.cleaned_data["cell_count"],
-            chemistry=form.cleaned_data["chemistry"],
+    if not form.is_valid():
+        context = {
+            "form": form,
+            "preview": None,
+            "parsed_logs": (),
+            "flight_sessions": (),
+            "duplicate_flights": (),
+            "errors": (),
+        }
+        return render(
+            request,
+            "flightlog/_preview.html",
+            context,
+            status=400,
         )
+
+    preview = build_import_preview(
+        uploaded_files=form.cleaned_data["files"],
+        cell_count=form.cleaned_data["cell_count"],
+        chemistry=form.cleaned_data["chemistry"],
+    )
 
     context = {
         "form": form,
         "preview": preview,
-        "parsed_logs": preview.flights if preview else (),
-        "flight_sessions": preview.sessions if preview else (),
-        "duplicate_flights": preview.duplicates if preview else (),
-        "errors": preview.errors if preview else (),
+        "parsed_logs": preview.flights,
+        "flight_sessions": preview.sessions,
+        "duplicate_flights": preview.duplicates,
+        "errors": preview.errors,
     }
 
     return render(
         request,
         "flightlog/_preview.html",
         context,
-        status=200 if form_is_valid else 400,
+        status=200,
     )
