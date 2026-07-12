@@ -16,7 +16,6 @@ from .services.parser import (
     format_duration,
     parse_flight_log,
     parse_flight_logs,
-    preview_flight_logs,
 )
 from .services.preview import find_duplicate_flights
 from .services.save_service import (
