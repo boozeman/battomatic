@@ -5,7 +5,7 @@ from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase
-from django.urls import reverse
+from django.urls import reverse, resolve
 
 from .forms import FlightLogUploadForm
 from .models import Flight, FlightSession
