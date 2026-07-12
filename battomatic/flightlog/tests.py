@@ -455,7 +455,7 @@ class FlightLogUploadViewTests(SimpleTestCase):
 
     def test_uploaded_log_is_displayed(self):
         response = self.client.post(
-            reverse("flightlog:preview"),
+            reverse("flightlog:upload"),
             data={
                 "cell_count": "4",
                 "chemistry": "lihv",
@@ -569,7 +569,7 @@ foo,bar
 
     def test_preview_endpoint_returns_preview_fragment(self):
         response = self.client.post(
-            reverse("flightlog:preview"),
+            reverse("flightlog:upload"),
             data={
                 "cell_count": "4",
                 "chemistry": "lihv",
