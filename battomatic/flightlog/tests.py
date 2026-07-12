@@ -595,15 +595,6 @@ foo,bar
             1,
         )
 
-
-    def test_preview_endpoint_rejects_get_request(self):
-        response = self.client.get(
-            reverse("flightlog:preview"),
-        )
-
-        self.assertEqual(response.status_code, 405)
-
-
     def test_preview_endpoint_returns_form_errors(self):
         response = self.client.post(
             reverse("flightlog:preview"),
@@ -619,6 +610,14 @@ foo,bar
             "Unable to create preview",
             status_code=400,
         )
+
+    def test_preview_endpoint_rejects_get_request(self):
+        response = self.client.get(
+            reverse("flightlog:preview"),
+        )
+
+        self.assertEqual(response.status_code, 405)
+
 
 @override_settings(
     STORAGES={
