@@ -1,8 +1,7 @@
 from datetime import datetime, timedelta
-from django.test import SimpleTestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 from decimal import Decimal
 from django.db import IntegrityError, transaction
-from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase
 from django.urls import reverse, resolve
@@ -431,7 +430,7 @@ class FlightTimeFormattingTests(SimpleTestCase):
     }
 )
 
-class FlightLogUploadViewTests(SimpleTestCase):
+class FlightLogUploadViewTests(TestCase):
     def make_file(
         self,
         name="Modelname-2026-07-10-163941.csv",
