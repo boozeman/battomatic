@@ -16,7 +16,7 @@ class FlightSessionBuildError(ValueError):
 
 
 @dataclass(frozen=True)
-class FlightSession:
+class FlightSessionPreview:
     flights: tuple[ParsedFlightLog, ...]
     cell_count: int
     chemistry: str
@@ -116,7 +116,7 @@ def build_flight_sessions(
     *,
     cell_count: int,
     chemistry: str,
-) -> list[FlightSession]:
+) -> list[FlightSessionPreview]:
     if not flights:
         return []
 
@@ -153,7 +153,7 @@ def build_flight_sessions(
 
         if new_session_reason is not None:
             sessions.append(
-                FlightSession(
+                FlightSessionPreview(
                     flights=tuple(current_flights),
                     cell_count=cell_count,
                     chemistry=chemistry,
@@ -168,7 +168,7 @@ def build_flight_sessions(
 
     if current_flights:
         sessions.append(
-            FlightSession(
+            FlightSessionPreview(
                 flights=tuple(current_flights),
                 cell_count=cell_count,
                 chemistry=chemistry,
