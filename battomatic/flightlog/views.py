@@ -43,26 +43,10 @@ def preview_flight_logs(request):
     context = {
         "form": form,
         "preview": preview,
-        "parsed_logs": (
-            preview.flights
-            if preview is not None
-            else ()
-        ),
-        "flight_sessions": (
-            preview.sessions
-            if preview is not None
-            else ()
-        ),
-        "duplicate_flights": (
-            preview.duplicates
-            if preview is not None
-            else ()
-        ),
-        "errors": (
-            preview.errors
-            if preview is not None
-            else ()
-        ),
+        "parsed_logs": preview.flights if preview else (),
+        "flight_sessions": preview.sessions if preview else (),
+        "duplicate_flights": preview.duplicates if preview else (),
+        "errors": preview.errors if preview else (),
     }
 
     return render(
