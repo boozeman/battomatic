@@ -2,34 +2,44 @@
 
 {% block content %}
 <div class="container py-6">
-
-    <h1 class="text-3xl font-bold mb-6">Flight log import</h1>
+    <h1 class="text-3xl font-bold mb-6">
+        Flight log import
+    </h1>
 
     <div class="card">
         <form
             id="flight-log-upload-form"
             method="post"
+            action="{% url 'flightlog:preview' %}"
             enctype="multipart/form-data"
             hx-post="{% url 'flightlog:preview' %}"
             hx-target="#flight-log-preview"
             hx-swap="innerHTML"
             hx-encoding="multipart/form-data"
+            hx-indicator="#flight-log-request-indicator"
+            hx-disabled-elt="find button[type='submit']"
             class="mb-4"
         >
             {% csrf_token %}
 
             <label>
-                <span class="label">Cell Count</span>
+                <span class="label">
+                    Cell Count
+                </span>
                 {{ form.cell_count }}
             </label>
 
             <label>
-                <span class="label">Chemistry</span>
+                <span class="label">
+                    Chemistry
+                </span>
                 {{ form.chemistry }}
             </label>
 
             <label>
-                <span class="label">Files</span>
+                <span class="label">
+                    Files
+                </span>
                 {{ form.files }}
             </label>
 
@@ -44,6 +54,8 @@
                 <span
                     id="flight-log-request-indicator"
                     class="htmx-indicator"
+                    role="status"
+                    aria-live="polite"
                 >
                     Processing…
                 </span>
@@ -51,17 +63,20 @@
         </form>
     </div>
 
-    <div id="flight-log-preview">
+    <div
+        id="flight-log-preview"
+        aria-live="polite"
+    >
         {% include "flightlog/_preview.html" %}
     </div>
-
 </div>
+
 <script>
-document.body.addEventListener("htmx:beforeSwap", function (event) {
-    if (event.detail.xhr.status === 400) {
-        event.detail.shouldSwap = true;
-        event.detail.isError = false;
-    }
-});
+    document.body.addEventListener("htmx:beforeSwap", function (event) {
+        if (event.detail.xhr.status === 400) {
+            event.detail.shouldSwap = true;
+            event.detail.isError = false;
+        }
+    });
 </script>
 {% endblock %}
