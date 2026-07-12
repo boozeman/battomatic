@@ -42,6 +42,27 @@
         </div>
     {% endif %}
 
+    {% if duplicate_flights %}
+    <div class="alert alert-warning">
+        <h2 class="h5">Duplicate flights detected</h2>
+
+        <p>
+            The preview was not created because the same flight
+            appears more than once in the selected files.
+        </p>
+
+        <ul class="mb-0">
+            {% for duplicate in duplicate_flights %}
+                <li>
+                    <strong>{{ duplicate.filename }}</strong>
+                    —
+                    {{ duplicate.start_datetime|date:"Y-m-d H:i:s" }}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
     {% if parsed_logs %}
         <div class="card mb-6">
             <h2 class="text-xl font-bold mb-4">Import summary</h2>

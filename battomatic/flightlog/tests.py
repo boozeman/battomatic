@@ -522,6 +522,42 @@ foo,bar
             2,
         )
 
+    def test_duplicate_flights_prevent_session_preview(self):
+        first_file = self.make_file(
+            name="Mallinimi-2026-07-10-163941.csv",
+        )
+        second_file = self.make_file(
+            name="Mallinimi-2026-07-10-163941.csv",
+        )
+
+        response = self.client.post(
+            reverse("flightlog:upload"),
+            data={
+                "cell_count": "4",
+                "chemistry": "lihv",
+                "files": [
+                    first_file,
+                    second_file,
+                ],
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            len(response.context["duplicate_flights"]),
+            1,
+        )
+        self.assertEqual(
+            response.context["flight_sessions"],
+            [],
+        )
+        self.assertContains(
+            response,
+            "Duplicate flights detected",
+        )
+
+
+
 @override_settings(
     STORAGES={
         "default": {
