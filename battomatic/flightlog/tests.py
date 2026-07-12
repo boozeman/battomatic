@@ -62,7 +62,7 @@ class FlightLogParserTests(SimpleTestCase):
         result = parse_flight_log(uploaded_file)
 
         self.assertEqual(result.filename, uploaded_file.name)
-        self.assertEqual(result.model, "Mallinimi")
+        self.assertEqual(result.model, "ModelName")
         self.assertEqual(
             result.start_datetime.isoformat(),
             "2026-07-10T16:39:41.300000",
@@ -302,7 +302,7 @@ class FlightLogUploadFormTests(SimpleTestCase):
         self.assertContains(response, "17.00 V")
         self.assertContains(
             response,
-            "Ensimmäinen löydetty lento",
+            "First flight in logset",
         )
         self.assertContains(response, "Total flight time")
         self.assertContains(response, "Longest flight")
@@ -463,7 +463,7 @@ class FlightLogUploadViewTests(SimpleTestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Mallinimi")
+        self.assertContains(response, "ModelName")
         self.assertContains(response, "03:42")
         self.assertContains(response, "17.1 V")
         self.assertContains(response, "15.8 V")
