@@ -376,7 +376,7 @@ class FlightLogUploadFormTests(SimpleTestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("files", form.errors)
         self.assertIn(
-            "yhteenlaskettu koko",
+            "files total",
             form.errors["files"][0],
         )
 
@@ -426,7 +426,7 @@ class FlightTimeFormattingTests(SimpleTestCase):
 class FlightLogUploadViewTests(SimpleTestCase):
     def make_file(
         self,
-        name="Mallinimi-2026-07-10-163941.csv",
+        name="Modelname-2026-07-10-163941.csv",
         content=None,
     ):
         if content is None:
@@ -488,7 +488,7 @@ foo,bar
         self.assertEqual(response.status_code, 200)
         self.assertContains(
             response,
-            "CSV-tiedostosta puuttuvat kentät",
+            "CSV-file has missing fields:",
         )
 
     def test_log_with_zero_voltage_gap_displays_two_flights(self):
@@ -594,7 +594,7 @@ class FlightSessionBuilderTests(SimpleTestCase):
         duration_seconds,
         start_voltage,
         end_voltage,
-        model="Mallinimi",
+        model="ModelName",
         date="2026-07-10",
     ):
         start_datetime = datetime.fromisoformat(
