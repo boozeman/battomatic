@@ -1,8 +1,9 @@
 from dataclasses import dataclass
+
 from django.db import transaction
 
-from .import_service import ImportPreview
 from ..models import Flight, FlightSession
+from .import_service import ImportPreview
 
 
 class ImportSaveError(ValueError):
