@@ -414,7 +414,9 @@ class FlightTimeFormattingTests(SimpleTestCase):
 @override_settings(
     STORAGES={
         "default": {
-            "BACKEND": "django.core.files.storage.FileSystemStorage",
+            "BACKEND": (
+                "django.core.files.storage.FileSystemStorage"
+            ),
         },
         "staticfiles": {
             "BACKEND": (
@@ -423,11 +425,10 @@ class FlightTimeFormattingTests(SimpleTestCase):
         },
     }
 )
-
 class FlightLogUploadViewTests(SimpleTestCase):
     def make_file(
         self,
-        name="Modelname-2026-07-10-163941.csv",
+        name="Mallinimi-2026-07-10-163941.csv",
         content=None,
     ):
         if content is None:
@@ -453,6 +454,79 @@ class FlightLogUploadViewTests(SimpleTestCase):
             "flightlog/upload.html",
         )
 
+    def test_upload_endpoint_rejects_post_request(self):
+        response = self.client.post(
+            reverse("flightlog:upload"),
+            data={
+                "cell_count": "4",
+                "chemistry": "lihv",
+                "files": self.make_file(),
+            },
+        )
+
+        self.assertEqual(response.status_code, 405)
+
+    def test_preview_endpoint_rejects_get_request(self):
+        response = self.client.get(
+            reverse("flightlog:preview"),
+        )
+
+        self.assertEqual(response.status_code, 405)
+
+    def test_preview_endpoint_returns_preview_fragment(self):
+        response = self.client.post(
+            reverse("flightlog:preview"),
+            data={
+                "cell_count": "4",
+                "chemistry": "lihv",
+                "files": self.make_file(),
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(
+            response,
+            "flightlog/_preview.html",
+        )
+        self.assertContains(
+            response,
+            "Battery session 1",
+        )
+
+        preview = response.context["preview"]
+
+        self.assertIsNotNone(preview)
+        self.assertTrue(preview.is_valid)
+        self.assertEqual(preview.flight_count, 1)
+        self.assertEqual(preview.session_count, 1)
+
+    def test_preview_endpoint_returns_form_errors(self):
+        response = self.client.post(
+            reverse("flightlog:preview"),
+            data={
+                "cell_count": "4",
+                "chemistry": "lihv",
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertTemplateUsed(
+            response,
+            "flightlog/_preview.html",
+        )
+        self.assertIsNone(
+            response.context["preview"],
+        )
+        self.assertIn(
+            "files",
+            response.context["form"].errors,
+        )
+        self.assertContains(
+            response,
+            "Unable to create preview",
+            status_code=400,
+        )
+
     def test_uploaded_log_is_displayed(self):
         response = self.client.post(
             reverse("flightlog:preview"),
@@ -464,11 +538,40 @@ class FlightLogUploadViewTests(SimpleTestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Model")
+        self.assertContains(response, "Mallinimi")
         self.assertContains(response, "03:42")
         self.assertContains(response, "17.1 V")
         self.assertContains(response, "15.8 V")
-        self.assertEqual(len(response.context["flight_sessions"]), 1,)
+
+    def test_session_preview_is_displayed(self):
+        response = self.client.post(
+            reverse("flightlog:preview"),
+            data={
+                "cell_count": "4",
+                "chemistry": "lihv",
+                "files": self.make_file(),
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Battery session 1")
+        self.assertContains(response, "17.00 V")
+        self.assertContains(
+            response,
+            "First flight on logset",
+        )
+        self.assertContains(
+            response,
+            "Total flight time",
+        )
+        self.assertContains(
+            response,
+            "Longest flight",
+        )
+        self.assertContains(
+            response,
+            "Shortest flight",
+        )
 
     def test_invalid_log_error_is_displayed(self):
         uploaded_file = self.make_file(
@@ -489,7 +592,14 @@ foo,bar
         self.assertEqual(response.status_code, 200)
         self.assertContains(
             response,
-            "CSV-file has missing fields:",
+            "CSV file is missing required fields",
+        )
+        self.assertFalse(
+            response.context["preview"].is_valid,
+        )
+        self.assertEqual(
+            response.context["preview"].session_count,
+            0,
         )
 
     def test_log_with_zero_voltage_gap_displays_two_flights(self):
@@ -506,13 +616,19 @@ foo,bar
             data={
                 "cell_count": "4",
                 "chemistry": "lihv",
-                "files": self.make_file(content=csv_content),
+                "files": self.make_file(
+                    content=csv_content,
+                ),
             },
         )
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             len(response.context["parsed_logs"]),
+            2,
+        )
+        self.assertEqual(
+            response.context["preview"].flight_count,
             2,
         )
 
@@ -541,82 +657,23 @@ foo,bar
             len(response.context["duplicate_flights"]),
             1,
         )
-        self.assertEqual(
+        self.assertFalse(
             response.context["flight_sessions"],
-            (),
         )
         self.assertContains(
             response,
             "Duplicate flights detected",
         )
 
-    def test_view_exposes_import_preview(self):
-        response = self.client.post(
+    def test_preview_url_resolves_to_preview_view(self):
+        match = resolve(
             reverse("flightlog:preview"),
-            data={
-                "cell_count": "4",
-                "chemistry": "lihv",
-                "files": self.make_file(),
-            },
         )
 
-        preview = response.context["preview"]
-
-        self.assertIsNotNone(preview)
-        self.assertTrue(preview.is_valid)
-        self.assertEqual(preview.flight_count, 1)
-        self.assertEqual(preview.session_count, 1)
-
-    def test_preview_endpoint_returns_preview_fragment(self):
-        response = self.client.post(
-            reverse("flightlog:preview"),
-            data={
-                "cell_count": "4",
-                "chemistry": "lihv",
-                "files": self.make_file(),
-            },
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(
-            response,
-            "flightlog/_preview.html",
-        )
-        self.assertContains(
-            response,
-            "Battery session 1",
-        )
         self.assertEqual(
-            response.context["preview"].flight_count,
-            1,
+            match.func,
+            preview_flight_logs,
         )
-        self.assertEqual(
-            response.context["preview"].session_count,
-            1,
-        )
-
-    def test_preview_endpoint_returns_form_errors(self):
-        response = self.client.post(
-            reverse("flightlog:preview"),
-            data={
-                "cell_count": "4",
-                "chemistry": "lihv",
-            },
-        )
-
-        self.assertEqual(response.status_code, 400)
-        self.assertContains(
-            response,
-            "Unable to create preview",
-            status_code=400,
-        )
-
-    def test_preview_endpoint_rejects_get_request(self):
-        response = self.client.get(
-            reverse("flightlog:preview"),
-        )
-
-        self.assertEqual(response.status_code, 405)
 
 
 @override_settings(
