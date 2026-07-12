@@ -1,4 +1,6 @@
 from dataclasses import dataclass, field
+from django.db import transaction
+from flightlog.models import Flight, FlightSession
 
 from .parser import (
     FlightLogParseError,
@@ -79,3 +81,37 @@ def build_import_preview(
         duplicates=tuple(duplicates),
         errors=tuple(errors),
     )
+
+@transaction.atomic
+def save_import_preview(preview: ImportPreview) -> tuple[FlightSession, ...]:
+    if not preview.is_valid:
+        raise ValueError("Invalid import preview cannot be saved.")
+
+    created_sessions = []
+
+    for session_preview in preview.sessions:
+        session = FlightSession.objects.create(
+            aircraft_name=session_preview.model,
+            cell_count=session_preview.cell_count,
+            chemistry=session_preview.chemistry,
+            voltage_threshold=session_preview.voltage_threshold,
+        )
+
+        Flight.objects.bulk_create(
+            [
+                Flight(
+                    session=session,
+                    start_datetime=flight.start_datetime,
+                    end_datetime=flight.end_datetime,
+                    flight_time=flight.flight_time,
+                    start_voltage=flight.start_voltage,
+                    end_voltage=flight.end_voltage,
+                    filename=flight.filename,
+                )
+                for flight in session_preview.flights
+            ]
+        )
+
+        created_sessions.append(session)
+
+    return tuple(created_sessions)

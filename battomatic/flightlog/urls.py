@@ -15,4 +15,9 @@ urlpatterns = [
         views.preview_flight_logs,
         name="preview",
     ),
+    path(
+        "import/",
+        views.import_flight_logs,
+        name="import",
+    ),    
 ]

@@ -635,6 +635,40 @@ foo,bar
             preview_flight_logs,
         )
 
+
+    def test_import_endpoint_saves_preview(self):
+        response = self.client.post(
+            reverse("flightlog:import"),
+            data={
+                "cell_count": "4",
+                "chemistry": "lihv",
+                "files": [
+                    self.make_uploaded_log(),
+                ],
+            },
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(FlightSession.objects.count(), 1)
+        self.assertGreater(Flight.objects.count(), 0)
+
+    def test_import_endpoint_does_not_save_invalid_preview(self):
+        response = self.client.post(
+            reverse("flightlog:import"),
+            data={
+                "cell_count": "4",
+                "chemistry": "lihv",
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(FlightSession.objects.count(), 0)
+        self.assertEqual(Flight.objects.count(), 0)    
+
+    def test_save_import_preview_rolls_back_on_failure(self):
+    # Pakota yhden lennon tallennus epäonnistumaan
+    # ja varmista, ettei sessioitakaan jää kantaan.        
+    
 @override_settings(
     STORAGES={
         "default": {
@@ -1605,3 +1639,4 @@ foo,bar
             Flight.objects.count(),
             0,
         )
+

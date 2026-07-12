@@ -169,3 +169,19 @@
         </section>
     {% endfor %}
 {% endif %}
+{% if preview and preview.is_valid and flight_sessions %}
+<div class="mt-6">
+    <button
+        type="button"
+        class="btn btn-success"
+        hx-post="{% url 'flightlog:import' %}"
+        hx-include="#flight-log-upload-form"
+        hx-target="#flight-log-preview"
+        hx-swap="innerHTML"
+        hx-encoding="multipart/form-data"
+        hx-disabled-elt="this"
+    >
+        Save to database
+    </button>
+</div>
+{% endif %}
