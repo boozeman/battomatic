@@ -1,14 +1,14 @@
 from datetime import datetime, timedelta
 from django.test import SimpleTestCase, override_settings
 from decimal import Decimal
-
 from django.db import IntegrityError, transaction
 from django.test import TestCase
-from .models import Flight, FlightSession
-
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase
 from django.urls import reverse
+
+from .forms import FlightLogUploadForm
+from .models import Flight, FlightSession
 
 from .services.import_service import build_import_preview
 from .services.parser import (
