@@ -302,7 +302,7 @@ class FlightLogUploadFormTests(SimpleTestCase):
         self.assertContains(response, "17.00 V")
         self.assertContains(
             response,
-            "First flight in logset",
+            "First flight on logset",
         )
         self.assertContains(response, "Total flight time")
         self.assertContains(response, "Longest flight")
@@ -463,7 +463,7 @@ class FlightLogUploadViewTests(SimpleTestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "ModelName")
+        self.assertContains(response, "Model")
         self.assertContains(response, "03:42")
         self.assertContains(response, "17.1 V")
         self.assertContains(response, "15.8 V")
@@ -850,5 +850,5 @@ class FlightSessionBuilderTests(SimpleTestCase):
         )
         self.assertEqual(
             sessions[0].start_reason_label,
-            "Ensimmäinen löydetty lento",
+            "First flight on logset",
         )
