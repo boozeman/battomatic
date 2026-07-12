@@ -290,7 +290,7 @@ class FlightLogUploadFormTests(SimpleTestCase):
 
     def test_session_preview_is_displayed(self):
         response = self.client.post(
-            reverse("flightlog:upload"),
+            reverse("flightlog:preview"),
             data={
                 "cell_count": "4",
                 "chemistry": "lihv",
@@ -444,7 +444,7 @@ class FlightLogUploadViewTests(SimpleTestCase):
 
     def test_upload_page_opens(self):
         response = self.client.get(
-            reverse("flightlog:upload"),
+            reverse("flightlog:preview"),
         )
 
         self.assertEqual(response.status_code, 200)
@@ -455,7 +455,7 @@ class FlightLogUploadViewTests(SimpleTestCase):
 
     def test_uploaded_log_is_displayed(self):
         response = self.client.post(
-            reverse("flightlog:upload"),
+            reverse("flightlog:preview"),
             data={
                 "cell_count": "4",
                 "chemistry": "lihv",
@@ -478,7 +478,7 @@ foo,bar
         )
 
         response = self.client.post(
-            reverse("flightlog:upload"),
+            reverse("flightlog:preview"),
             data={
                 "cell_count": "4",
                 "chemistry": "lihv",
@@ -502,7 +502,7 @@ foo,bar
 """
 
         response = self.client.post(
-            reverse("flightlog:upload"),
+            reverse("flightlog:preview"),
             data={
                 "cell_count": "4",
                 "chemistry": "lihv",
@@ -525,7 +525,7 @@ foo,bar
         )
 
         response = self.client.post(
-            reverse("flightlog:upload"),
+            reverse("flightlog:preview"),
             data={
                 "cell_count": "4",
                 "chemistry": "lihv",
@@ -552,7 +552,7 @@ foo,bar
 
     def test_view_exposes_import_preview(self):
         response = self.client.post(
-            reverse("flightlog:upload"),
+            reverse("flightlog:preview"),
             data={
                 "cell_count": "4",
                 "chemistry": "lihv",
