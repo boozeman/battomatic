@@ -429,22 +429,23 @@ class FlightTimeFormattingTests(SimpleTestCase):
     }
 )
 
-class FlightLogUploadViewTests(TestCase):
 
-    def make_uploaded_log(self):
-        return SimpleUploadedFile(
-            "test-flight.csv",
-            (
-                b"Date,Time,Model,Voltage\n"
-                b"2026-07-12,12:00:00,Test Model,16.8\n"
-                b"2026-07-12,12:01:00,Test Model,16.2\n"
+@override_settings(
+    STORAGES={
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": (
+                "django.contrib.staticfiles.storage.StaticFilesStorage"
             ),
-            content_type="text/csv",
-        )
-
+        },
+    }
+)
+class FlightLogUploadViewTests(TestCase):
     def make_file(
         self,
-        name="Modelname-2026-07-10-163941.csv",
+        name="ModelName-2026-07-10-163941.csv",
         content=None,
     ):
         if content is None:
@@ -485,7 +486,10 @@ class FlightLogUploadViewTests(TestCase):
         self.assertContains(response, "03:42")
         self.assertContains(response, "17.1 V")
         self.assertContains(response, "15.8 V")
-        self.assertEqual(len(response.context["flight_sessions"]), 1,)
+        self.assertEqual(
+            len(response.context["flight_sessions"]),
+            1,
+        )
 
     def test_invalid_log_error_is_displayed(self):
         uploaded_file = self.make_file(
@@ -535,10 +539,10 @@ foo,bar
 
     def test_duplicate_flights_prevent_session_preview(self):
         first_file = self.make_file(
-            name="Mallinimi-2026-07-10-163941.csv",
+            name="ModelName-2026-07-10-163941.csv",
         )
         second_file = self.make_file(
-            name="Mallinimi-2026-07-10-163941.csv",
+            name="ModelName-2026-07-10-163941.csv",
         )
 
         response = self.client.post(
@@ -576,6 +580,8 @@ foo,bar
                 "files": self.make_file(),
             },
         )
+
+        self.assertEqual(response.status_code, 200)
 
         preview = response.context["preview"]
 
@@ -645,22 +651,29 @@ foo,bar
             preview_flight_logs,
         )
 
-
     def test_import_endpoint_saves_preview(self):
         response = self.client.post(
             reverse("flightlog:import"),
             data={
                 "cell_count": "4",
                 "chemistry": "lihv",
-                "files": [
-                    self.make_uploaded_log(),
-                ],
+                "files": self.make_file(),
             },
         )
 
-        self.assertEqual(response.status_code, 201)
-        self.assertEqual(FlightSession.objects.count(), 1)
-        self.assertGreater(Flight.objects.count(), 0)
+        self.assertEqual(
+            response.status_code,
+            201,
+            response.content.decode(),
+        )
+        self.assertEqual(
+            FlightSession.objects.count(),
+            1,
+        )
+        self.assertEqual(
+            Flight.objects.count(),
+            1,
+        )
 
     def test_import_endpoint_does_not_save_invalid_preview(self):
         response = self.client.post(
@@ -671,13 +684,27 @@ foo,bar
             },
         )
 
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(FlightSession.objects.count(), 0)
-        self.assertEqual(Flight.objects.count(), 0)    
+        self.assertEqual(
+            response.status_code,
+            400,
+            response.content.decode(),
+        )
+        self.assertEqual(
+            FlightSession.objects.count(),
+            0,
+        )
+        self.assertEqual(
+            Flight.objects.count(),
+            0,
+        )
 
-    #def test_save_import_preview_rolls_back_on_failure(self):
-        # Pakota yhden lennon tallennus epäonnistumaan
-        # ja varmista, ettei sessioitakaan jää kantaan.        
+    def test_import_endpoint_rejects_get_request(self):
+        response = self.client.get(
+            reverse("flightlog:import"),
+        )
+
+        self.assertEqual(response.status_code, 405)
+
 
 
 @override_settings(
