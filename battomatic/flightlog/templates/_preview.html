@@ -1,0 +1,151 @@
+    {% if errors %}
+        <div class="alert alert-danger">
+            <h2 class="h5">Errors</h2>
+
+            <ul class="mb-0">
+                {% for error in errors %}
+                    <li>
+                        <strong>{{ error.filename }}</strong>:
+                        {{ error.message }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    {% if duplicate_flights %}
+    <div class="alert alert-warning">
+        <h2 class="h5">Duplicate flights detected</h2>
+
+        <p>
+            The preview was not created because the same flight
+            appears more than once in the selected files.
+        </p>
+
+        <ul class="mb-0">
+            {% for duplicate in duplicate_flights %}
+                <li>
+                    <strong>{{ duplicate.filename }}</strong>
+                    —
+                    {{ duplicate.start_datetime|date:"Y-m-d H:i:s" }}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if parsed_logs %}
+        <div class="card mb-6">
+            <h2 class="text-xl font-bold mb-4">Import summary</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="metric">
+                    Flights found:
+                    <strong>{{ parsed_logs|length }}</strong>
+                </div>
+
+                <div class="metric">
+                    Battery sessions found:
+                    <strong>{{ flight_sessions|length }}</strong>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+{% if flight_sessions %}
+    <h2 class="text-xl font-bold mb-4">Battery sessions</h2>
+
+    {% for session in flight_sessions %}
+        <section class="card mb-6">
+            <h3 class="text-lg font-semibold mb-4">
+                Battery session {{ forloop.counter }}
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <div class="metric">
+                    Date:
+                    <strong>{{ session.date|date:"Y-m-d" }}</strong>
+                </div>
+
+                <div class="metric">
+                    Model:
+                    <strong>{{ session.model }}</strong>
+                </div>
+
+                <div class="metric">
+                    Cell count:
+                    <strong>{{ session.cell_count }}S</strong>
+                </div>
+
+                <div class="metric">
+                    Chemistry:
+                    <strong>{{ session.chemistry|upper }}</strong>
+                </div>
+
+                <div class="metric">
+                    Start voltage:
+                    <strong>{{ session.start_voltage }} V</strong>
+                </div>
+
+                <div class="metric">
+                    New battery threshold:
+                    <strong>{{ session.voltage_threshold }} V</strong>
+                </div>
+
+                <div class="metric">
+                    Session start reason:
+                    <strong>{{ session.start_reason_label }}</strong>
+                </div>
+
+                <div class="metric">
+                    Flights:
+                    <strong>{{ session.session_count }}</strong>
+                </div>
+
+                <div class="metric">
+                    Total flight time:
+                    <strong>{{ session.formatted_total_flight_time }}</strong>
+                </div>
+
+                <div class="metric">
+                    Longest flight:
+                    <strong>{{ session.formatted_longest_flight_time }}</strong>
+                </div>
+
+                <div class="metric">
+                    Shortest flight:
+                    <strong>{{ session.formatted_shortest_flight_time }}</strong>
+                </div>
+            </div>
+
+            <h4 class="text-lg font-semibold mb-3">Flights</h4>
+
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Flight time</th>
+                            <th>Start voltage</th>
+                            <th>End voltage</th>
+                            <th>Filename</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for flight in session.flights %}
+                            <tr>
+                                <td>{{ flight.start_time|time:"H:i:s" }}</td>
+                                <td>{{ flight.end_time|time:"H:i:s" }}</td>
+                                <td>{{ flight.formatted_flight_time }}</td>
+                                <td>{{ flight.start_voltage }} V</td>
+                                <td>{{ flight.end_voltage }} V</td>
+                                <td>{{ flight.filename }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endfor %}
+{% endif %}
