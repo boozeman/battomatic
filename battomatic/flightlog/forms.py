@@ -12,7 +12,10 @@ def format_file_size(size: int) -> str:
 
 class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
-
+    def __init__(self, attrs=None):
+        attrs = attrs or {}
+        attrs.setdefault("class", "form-control")
+        super().__init__(attrs)    
 
 class MultipleFileField(forms.FileField):
     def __init__(self, *args, **kwargs):
@@ -54,12 +57,18 @@ class FlightLogUploadForm(forms.Form):
         choices=CELL_COUNT_CHOICES,
         coerce=int,
         initial=4,
+        widget=forms.Select(
+            attrs={"class": "form-control"},
+        ),
     )
 
     chemistry = forms.ChoiceField(
         label="Chemistry",
         choices=CHEMISTRY_CHOICES,
         initial="lihv",
+        widget=forms.Select(
+            attrs={"class": "form-control"},
+        ),        
     )
 
     files = MultipleFileField(
