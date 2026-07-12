@@ -20,15 +20,16 @@ class MultipleFileField(forms.FileField):
         super().__init__(*args, **kwargs)
 
     def clean(self, data, initial=None):
-        single_file_clean = super().clean
+        if not data:
+            return [super().clean(data, initial)]
 
         if isinstance(data, (list, tuple)):
             return [
-                single_file_clean(uploaded_file, initial)
+                super().clean(uploaded_file, initial)
                 for uploaded_file in data
             ]
 
-        return [single_file_clean(data, initial)]
+        return [super().clean(data, initial)]
 
 
 class FlightLogUploadForm(forms.Form):
