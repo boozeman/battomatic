@@ -551,7 +551,7 @@ foo,bar
         )
         self.assertEqual(
             response.context["flight_sessions"],
-            [],
+            (),
         )
         self.assertContains(
             response,
