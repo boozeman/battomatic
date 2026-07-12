@@ -665,10 +665,11 @@ foo,bar
         self.assertEqual(FlightSession.objects.count(), 0)
         self.assertEqual(Flight.objects.count(), 0)    
 
-    def test_save_import_preview_rolls_back_on_failure(self):
-    # Pakota yhden lennon tallennus epäonnistumaan
-    # ja varmista, ettei sessioitakaan jää kantaan.        
-    
+    #def test_save_import_preview_rolls_back_on_failure(self):
+        # Pakota yhden lennon tallennus epäonnistumaan
+        # ja varmista, ettei sessioitakaan jää kantaan.        
+
+
 @override_settings(
     STORAGES={
         "default": {
