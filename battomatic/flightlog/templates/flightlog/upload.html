@@ -1,22 +1,31 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container py-4">
-    <h1>Flight log import</h1>
+<div class="container py-6">
+    <h1 class="text-3xl font-bold mb-6">Flight log import</h1>
 
-    <form
-        method="post"
-        enctype="multipart/form-data"
-        class="mb-4"
-    >
+    <div class="card">
+        <form method="post" enctype="multipart/form-data" class="mb-4">
         {% csrf_token %}
+            <label>
+                <span class="label">Cell Count</span>
+                {{ form.cell_count}}
+            </label>
+            <label>
+                <span class="label">Chemistry</span>
+                {{ form.chemistry}}
+            </label>
+            <label>
+                <span class="label">Files</span>
+                {{ form.files }}
+            </label>
 
-        {{ form.as_p }}
-
-        <button type="submit" class="btn btn-primary">
-            Parse logs
-        </button>
-    </form>
+            <button type="submit" class="btn btn-primary">
+                Parse logs
+            </button>
+        </form>
+    </div>
+</div>
 
     {% if errors %}
         <div class="alert alert-danger">
