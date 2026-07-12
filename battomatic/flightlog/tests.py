@@ -34,6 +34,8 @@ from .session_builder import (
     get_new_battery_voltage_threshold,
 )
 
+from .import_service import build_import_preview
+
 CSV_CONTENT = """Date,Time,FM,Ptch(rad),Roll(rad),Yaw(rad),RxBt(V),Curr(A),Capa(mAh),Bat%(%)
 2026-07-10,16:39:41.300,"AIR",0.00,0.00,0.57,17.1,0.5,4,99
 2026-07-10,16:39:42.300,"AIR",0.00,0.00,0.57,17.1,0.8,4,99
@@ -556,6 +558,22 @@ foo,bar
             "Duplicate flights detected",
         )
 
+    def test_view_exposes_import_preview(self):
+        response = self.client.post(
+            reverse("flightlog:upload"),
+            data={
+                "cell_count": "4",
+                "chemistry": "lihv",
+                "files": self.make_file(),
+            },
+        )
+
+        preview = response.context["preview"]
+
+        self.assertIsNotNone(preview)
+        self.assertTrue(preview.is_valid)
+        self.assertEqual(preview.flight_count, 1)
+        self.assertEqual(preview.session_count, 1)
 
 
 @override_settings(
@@ -1302,3 +1320,98 @@ class FlightPreviewDuplicateTests(SimpleTestCase):
         duplicates = find_duplicate_flights(flights)
 
         self.assertEqual(duplicates, [])
+
+class ImportPreviewTests(SimpleTestCase):
+    def make_file(
+        self,
+        *,
+        name="Mallinimi-2026-07-10-163941.csv",
+        content=None,
+    ):
+        if content is None:
+            content = """Date,Time,RxBt(V)
+2026-07-10,16:39:41.300,17.1
+2026-07-10,16:43:23.300,15.8
+"""
+
+        return SimpleUploadedFile(
+            name=name,
+            content=content.encode("utf-8"),
+            content_type="text/csv",
+        )
+
+    def test_builds_valid_preview(self):
+        preview = build_import_preview(
+            uploaded_files=[
+                self.make_file(),
+            ],
+            cell_count=4,
+            chemistry="lihv",
+        )
+
+        self.assertTrue(preview.is_valid)
+        self.assertEqual(preview.flight_count, 1)
+        self.assertEqual(preview.session_count, 1)
+        self.assertEqual(preview.errors, ())
+        self.assertEqual(preview.duplicates, ())
+
+    def test_collects_parser_errors(self):
+        preview = build_import_preview(
+            uploaded_files=[
+                self.make_file(
+                    content="""Wrong,Header
+foo,bar
+""",
+                ),
+            ],
+            cell_count=4,
+            chemistry="lihv",
+        )
+
+        self.assertFalse(preview.is_valid)
+        self.assertEqual(preview.flight_count, 0)
+        self.assertEqual(preview.session_count, 0)
+        self.assertEqual(len(preview.errors), 1)
+        self.assertEqual(preview.duplicates, ())
+
+    def test_duplicate_flights_prevent_sessions(self):
+        first_file = self.make_file()
+        second_file = self.make_file()
+
+        preview = build_import_preview(
+            uploaded_files=[
+                first_file,
+                second_file,
+            ],
+            cell_count=4,
+            chemistry="lihv",
+        )
+
+        self.assertFalse(preview.is_valid)
+        self.assertEqual(preview.flight_count, 2)
+        self.assertEqual(preview.session_count, 0)
+        self.assertEqual(len(preview.duplicates), 1)
+        self.assertEqual(preview.errors, ())
+
+    def test_parser_error_prevents_sessions(self):
+        valid_file = self.make_file()
+        invalid_file = self.make_file(
+            name="Broken-2026-07-10-164500.csv",
+            content="""Wrong,Header
+foo,bar
+""",
+        )
+
+        preview = build_import_preview(
+            uploaded_files=[
+                valid_file,
+                invalid_file,
+            ],
+            cell_count=4,
+            chemistry="lihv",
+        )
+
+        self.assertFalse(preview.is_valid)
+        self.assertEqual(preview.flight_count, 1)
+        self.assertEqual(preview.session_count, 0)
+        self.assertEqual(len(preview.errors), 1)
