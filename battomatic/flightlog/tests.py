@@ -350,7 +350,7 @@ class FlightLogUploadFormTests(SimpleTestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("files", form.errors)
         self.assertIn(
-            "tiedosto on liian suuri",
+            "One file size limit is",
             form.errors["files"][0],
         )
 
