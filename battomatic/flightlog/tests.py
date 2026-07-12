@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from django.test import SimpleTestCase, override_settings
 from decimal import Decimal
-from .preview import find_duplicate_flights
+from .services.preview import find_duplicate_flights
 
 from django.db import IntegrityError, transaction
 from django.test import TestCase
@@ -12,14 +12,14 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase
 from django.urls import reverse
 
-from .forms import FlightLogUploadForm
-from .parser import (
+from .services.forms import FlightLogUploadForm
+from .services.parser import (
     format_duration,
     parse_flight_log,
     parse_flight_logs,
 )
 
-from .session_builder import (
+from .services.session_builder import (
     FlightSessionBuildError,
     get_new_battery_voltage_threshold,
 )
@@ -27,14 +27,14 @@ from .session_builder import (
 from datetime import datetime
 from decimal import Decimal
 
-from .parser import ParsedFlightLog
-from .session_builder import (
+from .services.parser import ParsedFlightLog
+from .services.session_builder import (
     FlightSessionBuildError,
     build_flight_sessions,
     get_new_battery_voltage_threshold,
 )
 
-from .import_service import build_import_preview
+from .services.import_service import build_import_preview
 
 from .save_service import (
     ImportSaveError,

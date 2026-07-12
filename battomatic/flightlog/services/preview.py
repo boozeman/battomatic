@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
-
 from .parser import ParsedFlightLog
+from .services.parser import ParsedFlightLog
 
 
 @dataclass(frozen=True)

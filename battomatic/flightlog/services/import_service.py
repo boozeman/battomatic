@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-
 from .parser import FlightLogParseError, ParsedFlightLog, parse_flight_logs
 from .preview import DuplicateFlight, find_duplicate_flights
 from .session_builder import FlightSessionPreview, build_flight_sessions

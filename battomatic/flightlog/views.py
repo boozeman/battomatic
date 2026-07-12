@@ -1,7 +1,7 @@
 from django.shortcuts import render
 
-from .forms import FlightLogUploadForm
-from .import_service import build_import_preview
+from .services.forms import FlightLogUploadForm
+from .services.import_service import build_import_preview
 
 
 def upload_flight_logs(request):
