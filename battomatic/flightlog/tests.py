@@ -606,7 +606,7 @@ foo,bar
 
     def test_preview_endpoint_returns_form_errors(self):
         response = self.client.post(
-            reverse("flightlog:preview"),
+            reverse("flightlog:upload"),
             data={
                 "cell_count": "4",
                 "chemistry": "lihv",
