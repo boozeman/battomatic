@@ -1,5 +1,11 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 from django.test import SimpleTestCase, override_settings
+from decimal import Decimal
+
+from django.db import IntegrityError, transaction
+from django.test import TestCase
+from .models import Flight, FlightSession
+
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase
@@ -852,3 +858,337 @@ class FlightSessionBuilderTests(SimpleTestCase):
             sessions[0].start_reason_label,
             "First flight on logset",
         )
+
+class FlightSessionModelTests(TestCase):
+    def setUp(self):
+        self.session = FlightSession.objects.create(
+            aircraft_name="Mallinimi",
+            cell_count=4,
+            chemistry=FlightSession.Chemistry.LIHV,
+            voltage_threshold=Decimal("17.00"),
+        )
+
+    def create_flight(
+        self,
+        *,
+        start_datetime,
+        duration_seconds,
+        start_voltage,
+        end_voltage,
+        filename,
+    ):
+        end_datetime = start_datetime + timedelta(
+            seconds=duration_seconds
+        )
+
+        return Flight.objects.create(
+            session=self.session,
+            start_datetime=start_datetime,
+            end_datetime=end_datetime,
+            flight_time=end_datetime - start_datetime,
+            start_voltage=Decimal(start_voltage),
+            end_voltage=Decimal(end_voltage),
+            filename=filename,
+        )
+
+    def test_session_string_representation(self):
+        self.assertEqual(
+            str(self.session),
+            "Mallinimi - 4S LiHV",
+        )
+
+    def test_session_has_no_flights_initially(self):
+        self.assertIsNone(self.session.first_flight)
+        self.assertIsNone(self.session.date)
+        self.assertIsNone(self.session.start_voltage)
+        self.assertEqual(self.session.flight_count, 0)
+        self.assertEqual(
+            self.session.total_flight_time,
+            timedelta(),
+        )
+        self.assertIsNone(
+            self.session.longest_flight_time
+        )
+        self.assertIsNone(
+            self.session.shortest_flight_time
+        )
+
+    def test_session_uses_first_flight_for_date_and_voltage(self):
+        later_flight = self.create_flight(
+            start_datetime=datetime(
+                2026,
+                7,
+                10,
+                16,
+                50,
+                0,
+            ),
+            duration_seconds=180,
+            start_voltage="16.20",
+            end_voltage="15.40",
+            filename=(
+                "Mallinimi-2026-07-10-165000.csv"
+            ),
+        )
+
+        first_flight = self.create_flight(
+            start_datetime=datetime(
+                2026,
+                7,
+                10,
+                16,
+                39,
+                41,
+            ),
+            duration_seconds=200,
+            start_voltage="17.30",
+            end_voltage="15.80",
+            filename=(
+                "Mallinimi-2026-07-10-163941.csv"
+            ),
+        )
+
+        self.assertEqual(
+            self.session.first_flight,
+            first_flight,
+        )
+        self.assertNotEqual(
+            self.session.first_flight,
+            later_flight,
+        )
+        self.assertEqual(
+            self.session.date.isoformat(),
+            "2026-07-10",
+        )
+        self.assertEqual(
+            self.session.start_voltage,
+            Decimal("17.30"),
+        )
+
+    def test_session_calculates_flight_summary(self):
+        self.create_flight(
+            start_datetime=datetime(
+                2026,
+                7,
+                10,
+                16,
+                39,
+                41,
+            ),
+            duration_seconds=180,
+            start_voltage="17.30",
+            end_voltage="15.80",
+            filename=(
+                "Mallinimi-2026-07-10-163941.csv"
+            ),
+        )
+
+        self.create_flight(
+            start_datetime=datetime(
+                2026,
+                7,
+                10,
+                16,
+                50,
+                0,
+            ),
+            duration_seconds=200,
+            start_voltage="16.20",
+            end_voltage="15.40",
+            filename=(
+                "Mallinimi-2026-07-10-165000.csv"
+            ),
+        )
+
+        self.create_flight(
+            start_datetime=datetime(
+                2026,
+                7,
+                10,
+                17,
+                0,
+                0,
+            ),
+            duration_seconds=160,
+            start_voltage="15.80",
+            end_voltage="15.10",
+            filename=(
+                "Mallinimi-2026-07-10-170000.csv"
+            ),
+        )
+
+        self.assertEqual(
+            self.session.flight_count,
+            3,
+        )
+        self.assertEqual(
+            self.session.total_flight_time,
+            timedelta(seconds=540),
+        )
+        self.assertEqual(
+            self.session.longest_flight_time,
+            timedelta(seconds=200),
+        )
+        self.assertEqual(
+            self.session.shortest_flight_time,
+            timedelta(seconds=160),
+        )
+
+    def test_deleting_session_deletes_its_flights(self):
+        self.create_flight(
+            start_datetime=datetime(
+                2026,
+                7,
+                10,
+                16,
+                39,
+                41,
+            ),
+            duration_seconds=180,
+            start_voltage="17.30",
+            end_voltage="15.80",
+            filename=(
+                "Mallinimi-2026-07-10-163941.csv"
+            ),
+        )
+
+        self.assertEqual(
+            Flight.objects.count(),
+            1,
+        )
+
+        self.session.delete()
+
+        self.assertEqual(
+            Flight.objects.count(),
+            0,
+        )
+
+
+class FlightModelTests(TestCase):
+    def setUp(self):
+        self.session = FlightSession.objects.create(
+            aircraft_name="Mallinimi",
+            cell_count=4,
+            chemistry=FlightSession.Chemistry.LIHV,
+            voltage_threshold=Decimal("17.00"),
+        )
+
+    def create_flight(
+        self,
+        *,
+        filename=(
+            "Mallinimi-2026-07-10-163941.csv"
+        ),
+        start_datetime=None,
+        end_datetime=None,
+    ):
+        if start_datetime is None:
+            start_datetime = datetime(
+                2026,
+                7,
+                10,
+                16,
+                39,
+                41,
+            )
+
+        if end_datetime is None:
+            end_datetime = start_datetime + timedelta(
+                seconds=180
+            )
+
+        return Flight.objects.create(
+            session=self.session,
+            start_datetime=start_datetime,
+            end_datetime=end_datetime,
+            flight_time=(
+                end_datetime - start_datetime
+            ),
+            start_voltage=Decimal("17.30"),
+            end_voltage=Decimal("15.80"),
+            filename=filename,
+        )
+
+    def test_flight_string_representation(self):
+        flight = self.create_flight()
+
+        self.assertEqual(
+            str(flight),
+            (
+                "Mallinimi - "
+                "2026-07-10 16:39:41"
+            ),
+        )
+
+    def test_flights_are_ordered_by_start_datetime(self):
+        later_flight = self.create_flight(
+            filename=(
+                "Mallinimi-2026-07-10-170000.csv"
+            ),
+            start_datetime=datetime(
+                2026,
+                7,
+                10,
+                17,
+                0,
+                0,
+            ),
+            end_datetime=datetime(
+                2026,
+                7,
+                10,
+                17,
+                3,
+                0,
+            ),
+        )
+
+        earlier_flight = self.create_flight(
+            filename=(
+                "Mallinimi-2026-07-10-163941.csv"
+            ),
+            start_datetime=datetime(
+                2026,
+                7,
+                10,
+                16,
+                39,
+                41,
+            ),
+            end_datetime=datetime(
+                2026,
+                7,
+                10,
+                16,
+                42,
+                41,
+            ),
+        )
+
+        flights = list(Flight.objects.all())
+
+        self.assertEqual(
+            flights,
+            [
+                earlier_flight,
+                later_flight,
+            ],
+        )
+
+    def test_duplicate_imported_flight_is_rejected(self):
+        flight = self.create_flight()
+
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                Flight.objects.create(
+                    session=self.session,
+                    start_datetime=(
+                        flight.start_datetime
+                    ),
+                    end_datetime=flight.end_datetime,
+                    flight_time=flight.flight_time,
+                    start_voltage=Decimal("17.30"),
+                    end_voltage=Decimal("15.80"),
+                    filename=flight.filename,
+                )
