@@ -36,6 +36,11 @@ from .session_builder import (
 
 from .import_service import build_import_preview
 
+from .save_service import (
+    ImportSaveError,
+    save_import_preview,
+)
+
 CSV_CONTENT = """Date,Time,FM,Ptch(rad),Roll(rad),Yaw(rad),RxBt(V),Curr(A),Capa(mAh),Bat%(%)
 2026-07-10,16:39:41.300,"AIR",0.00,0.00,0.57,17.1,0.5,4,99
 2026-07-10,16:39:42.300,"AIR",0.00,0.00,0.57,17.1,0.8,4,99
@@ -1415,3 +1420,134 @@ foo,bar
         self.assertEqual(preview.flight_count, 1)
         self.assertEqual(preview.session_count, 0)
         self.assertEqual(len(preview.errors), 1)
+
+class ImportSaveServiceTests(TestCase):
+    def make_file(
+        self,
+        *,
+        name="Mallinimi-2026-07-10-163941.csv",
+        content=None,
+    ):
+        if content is None:
+            content = """Date,Time,RxBt(V)
+2026-07-10,16:39:41.300,17.1
+2026-07-10,16:43:23.300,15.8
+"""
+
+        return SimpleUploadedFile(
+            name=name,
+            content=content.encode("utf-8"),
+            content_type="text/csv",
+        )
+
+    def test_saves_valid_preview(self):
+        preview = build_import_preview(
+            uploaded_files=[
+                self.make_file(),
+            ],
+            cell_count=4,
+            chemistry="lihv",
+        )
+
+        result = save_import_preview(preview)
+
+        self.assertEqual(result.session_count, 1)
+        self.assertEqual(result.flight_count, 1)
+        self.assertEqual(
+            FlightSession.objects.count(),
+            1,
+        )
+        self.assertEqual(
+            Flight.objects.count(),
+            1,
+        )
+
+        session = FlightSession.objects.get()
+
+        self.assertEqual(
+            session.aircraft_name,
+            "Mallinimi",
+        )
+        self.assertEqual(
+            session.cell_count,
+            4,
+        )
+        self.assertEqual(
+            session.chemistry,
+            "lihv",
+        )
+        self.assertEqual(
+            str(session.voltage_threshold),
+            "17.00",
+        )
+
+    def test_saves_multiple_sessions_and_flights(self):
+        first_file = self.make_file(
+            name="Mallinimi-2026-07-10-100000.csv",
+            content="""Date,Time,RxBt(V)
+2026-07-10,10:00:00.000,17.3
+2026-07-10,10:03:00.000,15.8
+""",
+        )
+        second_file = self.make_file(
+            name="Mallinimi-2026-07-10-100500.csv",
+            content="""Date,Time,RxBt(V)
+2026-07-10,10:05:00.000,16.2
+2026-07-10,10:08:00.000,15.4
+""",
+        )
+        third_file = self.make_file(
+            name="Mallinimi-2026-07-10-102000.csv",
+            content="""Date,Time,RxBt(V)
+2026-07-10,10:20:00.000,17.2
+2026-07-10,10:23:30.000,15.7
+""",
+        )
+
+        preview = build_import_preview(
+            uploaded_files=[
+                first_file,
+                second_file,
+                third_file,
+            ],
+            cell_count=4,
+            chemistry="lihv",
+        )
+
+        result = save_import_preview(preview)
+
+        self.assertEqual(result.session_count, 2)
+        self.assertEqual(result.flight_count, 3)
+        self.assertEqual(
+            FlightSession.objects.count(),
+            2,
+        )
+        self.assertEqual(
+            Flight.objects.count(),
+            3,
+        )
+
+    def test_rejects_invalid_preview(self):
+        preview = build_import_preview(
+            uploaded_files=[
+                self.make_file(
+                    content="""Wrong,Header
+foo,bar
+""",
+                ),
+            ],
+            cell_count=4,
+            chemistry="lihv",
+        )
+
+        with self.assertRaises(ImportSaveError):
+            save_import_preview(preview)
+
+        self.assertEqual(
+            FlightSession.objects.count(),
+            0,
+        )
+        self.assertEqual(
+            Flight.objects.count(),
+            0,
+        )
