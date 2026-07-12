@@ -3,7 +3,6 @@ from django.test import SimpleTestCase, TestCase, override_settings
 from decimal import Decimal
 from django.db import IntegrityError, transaction
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import SimpleTestCase
 from django.urls import reverse, resolve
 
 from .forms import FlightLogUploadForm
@@ -431,6 +430,18 @@ class FlightTimeFormattingTests(SimpleTestCase):
 )
 
 class FlightLogUploadViewTests(TestCase):
+
+    def make_uploaded_log(self):
+        return SimpleUploadedFile(
+            "test-flight.csv",
+            (
+                b"Date,Time,Model,Voltage\n"
+                b"2026-07-12,12:00:00,Test Model,16.8\n"
+                b"2026-07-12,12:01:00,Test Model,16.2\n"
+            ),
+            content_type="text/csv",
+        )
+
     def make_file(
         self,
         name="Modelname-2026-07-10-163941.csv",
