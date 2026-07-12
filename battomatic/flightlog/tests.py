@@ -9,6 +9,7 @@ from django.urls import reverse, resolve
 
 from .forms import FlightLogUploadForm
 from .models import Flight, FlightSession
+from .views import preview_flight_logs
 
 from .services.import_service import build_import_preview
 from .services.parser import (
