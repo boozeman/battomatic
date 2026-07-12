@@ -444,7 +444,7 @@ class FlightLogUploadViewTests(SimpleTestCase):
 
     def test_upload_page_opens(self):
         response = self.client.get(
-            reverse("flightlog:preview"),
+            reverse("flightlog:upload"),
         )
 
         self.assertEqual(response.status_code, 200)

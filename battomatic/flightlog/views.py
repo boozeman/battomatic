@@ -30,8 +30,8 @@ def preview_flight_logs(request):
         request.FILES,
     )
 
-    preview = None
     form_is_valid = form.is_valid()
+    preview = None
 
     if form_is_valid:
         preview = build_import_preview(

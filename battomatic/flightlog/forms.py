@@ -63,6 +63,7 @@ class FlightLogUploadForm(forms.Form):
 
     files = MultipleFileField(
         label="Flight log CSV files",
+        required=True,
         error_messages={
             "required": "Select one or more EdgeTX CSV log files.",
             "empty": "File is empty.",
