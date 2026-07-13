@@ -741,7 +741,7 @@ class FlightSessionVoltageThresholdTests(SimpleTestCase):
     def test_four_cell_lipo_threshold(self):
         threshold = get_new_battery_voltage_threshold(
             cell_count=4,
-            chemistry=self.lipo,
+            chemistry='lipo',
         )
 
         self.assertEqual(str(threshold), "16.00")
@@ -749,7 +749,7 @@ class FlightSessionVoltageThresholdTests(SimpleTestCase):
     def test_four_cell_lihv_threshold(self):
         threshold = get_new_battery_voltage_threshold(
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         self.assertEqual(str(threshold), "17.00")
