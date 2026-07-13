@@ -150,7 +150,7 @@ class FlightLogParserTests(SimpleTestCase):
         },
     }
 )
-class FlightLogUploadFormTests(SimpleTestCase):
+class FlightLogUploadFormTests(TestCase):
     def make_file(
         self,
         name="ModelName-2026-07-10-163941.csv",
