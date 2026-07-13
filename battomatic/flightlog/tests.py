@@ -796,7 +796,7 @@ class FlightSessionVoltageThresholdTests(SimpleTestCase):
         },
     }
 )
-class FlightSessionBuilderTests(SimpleTestCase):
+class FlightSessionBuilderTests(TestCase):
     def make_flight(
         self,
         *,
