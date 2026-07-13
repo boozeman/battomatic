@@ -54,7 +54,7 @@
             <tr>
               <td>
                 {% if session.date %}
-                  {{ session.date|date:"d.m.Y" }}
+                  {{ session.date|date:"d.m.Y hh:mm" }}
                 {% else %}
                   —
                 {% endif %}
