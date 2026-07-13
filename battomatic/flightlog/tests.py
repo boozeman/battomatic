@@ -27,12 +27,6 @@ from .services.session_builder import (
     get_new_battery_voltage_threshold,
 )
 
-import inspect
-from flightlog.views import preview_flight_logs
-
-print(inspect.getfile(preview_flight_logs))
-print(inspect.getsource(preview_flight_logs))
-
 CSV_CONTENT = """Date,Time,FM,Ptch(rad),Roll(rad),Yaw(rad),RxBt(V),Curr(A),Capa(mAh),Bat%(%)
 2026-07-10,16:39:41.300,"AIR",0.00,0.00,0.57,17.1,0.5,4,99
 2026-07-10,16:39:42.300,"AIR",0.00,0.00,0.57,17.1,0.8,4,99
@@ -151,11 +145,28 @@ class FlightLogParserTests(SimpleTestCase):
     }
 )
 class FlightLogUploadFormTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.lipo = BatteryChemistry.objects.create(
+            name="LiPo",
+            slug="lipo",
+            session_start_voltage_per_cell=Decimal("4.00"),
+            sort_order=10,
+        )
+        cls.lihv = BatteryChemistry.objects.create(
+            name="LiHV",
+            slug="lihv",
+            session_start_voltage_per_cell=Decimal("4.25"),
+            sort_order=20,
+        )
+
     def make_file(
         self,
         name="ModelName-2026-07-10-163941.csv",
-        content=b"Date,Time,RxBt(V)\n"
-        b"2026-07-10,16:39:41.300,17.1\n",
+        content=(
+            b"Date,Time,RxBt(V)\n"
+            b"2026-07-10,16:39:41.300,17.1\n"
+        ),
     ):
         return SimpleUploadedFile(
             name=name,
@@ -263,8 +274,8 @@ class FlightLogUploadFormTests(TestCase):
             6,
         )
         self.assertEqual(
-            form.cleaned_data["chemistry"],
-            "lipo",
+            form.cleaned_data["chemistry"].slug,
+            self.lipo,
         )
 
     def test_requires_cell_count(self):
@@ -458,7 +469,6 @@ class FlightLogUploadViewTests(TestCase):
             session_start_voltage_per_cell=Decimal("4.25"),
             sort_order=20,
         )
-
 
 
     def make_file(
@@ -737,14 +747,32 @@ foo,bar
         },
     }
 )
-class FlightSessionVoltageThresholdTests(SimpleTestCase):
+class FlightSessionVoltageThresholdTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.lipo = BatteryChemistry.objects.create(
+            name="LiPo",
+            slug="lipo",
+            session_start_voltage_per_cell=Decimal("4.00"),
+            sort_order=10,
+        )
+        cls.lihv = BatteryChemistry.objects.create(
+            name="LiHV",
+            slug="lihv",
+            session_start_voltage_per_cell=Decimal("4.25"),
+            sort_order=20,
+        )
+
     def test_four_cell_lipo_threshold(self):
         threshold = get_new_battery_voltage_threshold(
             cell_count=4,
-            chemistry='lipo',
+            chemistry=self.lipo,
         )
 
-        self.assertEqual(str(threshold), "16.00")
+        self.assertEqual(
+            threshold,
+            Decimal("16.00"),
+        )
 
     def test_four_cell_lihv_threshold(self):
         threshold = get_new_battery_voltage_threshold(
@@ -752,38 +780,57 @@ class FlightSessionVoltageThresholdTests(SimpleTestCase):
             chemistry=self.lihv,
         )
 
-        self.assertEqual(str(threshold), "17.00")
+        self.assertEqual(
+            threshold,
+            Decimal("17.00"),
+        )
 
     def test_six_cell_lipo_threshold(self):
         threshold = get_new_battery_voltage_threshold(
             cell_count=6,
-            chemistry="lipo",
+            chemistry=self.lipo,
         )
 
-        self.assertEqual(str(threshold), "24.00")
+        self.assertEqual(
+            threshold,
+            Decimal("24.00"),
+        )
 
     def test_six_cell_lihv_threshold(self):
         threshold = get_new_battery_voltage_threshold(
             cell_count=6,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
-        self.assertEqual(str(threshold), "25.50")
-
-    def test_rejects_unknown_chemistry(self):
-        with self.assertRaises(FlightSessionBuildError):
-            get_new_battery_voltage_threshold(
-                cell_count=4,
-                chemistry="nimh",
-            )
+        self.assertEqual(
+            threshold,
+            Decimal("25.50"),
+        )
 
     def test_rejects_zero_cell_count(self):
         with self.assertRaises(FlightSessionBuildError):
             get_new_battery_voltage_threshold(
                 cell_count=0,
-                chemistry="lipo",
+                chemistry=self.lipo,
             )
 
+    def test_uses_custom_database_threshold(self):
+        custom_chemistry = BatteryChemistry.objects.create(
+            name="Custom LiPo",
+            slug="custom-lipo",
+            session_start_voltage_per_cell=Decimal("3.95"),
+            sort_order=30,
+        )
+
+        threshold = get_new_battery_voltage_threshold(
+            cell_count=4,
+            chemistry=custom_chemistry,
+        )
+
+        self.assertEqual(
+            threshold,
+            Decimal("15.80"),
+        )
 @override_settings(
     STORAGES={
         "default": {
@@ -797,6 +844,22 @@ class FlightSessionVoltageThresholdTests(SimpleTestCase):
     }
 )
 class FlightSessionBuilderTests(TestCase):
+class FlightSessionBuilderTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.lipo = BatteryChemistry.objects.create(
+            name="LiPo",
+            slug="lipo",
+            session_start_voltage_per_cell=Decimal("4.00"),
+            sort_order=10,
+        )
+        cls.lihv = BatteryChemistry.objects.create(
+            name="LiHV",
+            slug="lihv",
+            session_start_voltage_per_cell=Decimal("4.25"),
+            sort_order=20,
+        )
+
     def make_flight(
         self,
         *,
@@ -826,7 +889,7 @@ class FlightSessionBuilderTests(TestCase):
             start_voltage=Decimal(start_voltage),
             end_voltage=Decimal(end_voltage),
         )
-
+    
     def test_groups_flights_with_same_battery(self):
         flights = [
             self.make_flight(
