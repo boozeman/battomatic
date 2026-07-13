@@ -32,25 +32,6 @@ CSV_CONTENT = """Date,Time,FM,Ptch(rad),Roll(rad),Yaw(rad),RxBt(V),Curr(A),Capa(
 2026-07-10,16:39:42.300,"AIR",0.00,0.00,0.57,17.1,0.8,4,99
 """
 
-class FlightLogImportServiceTests(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.lipo = BatteryChemistry.objects.create(
-            name="LiPo",
-            slug="lipo",
-            session_start_voltage_per_cell=Decimal("4.00"),
-            is_active=True,
-            sort_order=10,
-        )
-
-        cls.lihv = BatteryChemistry.objects.create(
-            name="LiHV",
-            slug="lihv",
-            session_start_voltage_per_cell=Decimal("4.25"),
-            is_active=True,
-            sort_order=20,
-        )
-
 
 @override_settings(
     STORAGES={
@@ -903,7 +884,6 @@ foo,bar
         self.assertEqual(response.status_code, 405)
 
 
-
 @override_settings(
     STORAGES={
         "default": {
@@ -1058,7 +1038,7 @@ class FlightSessionBuilderTests(TestCase):
             start_voltage=Decimal(start_voltage),
             end_voltage=Decimal(end_voltage),
         )
-    
+
     def test_groups_flights_with_same_battery(self):
         flights = [
             self.make_flight(
@@ -1300,7 +1280,7 @@ class FlightSessionModelTests(TestCase):
         self.session = FlightSession.objects.create(
             aircraft_name="Mallinimi",
             cell_count=4,
-            chemistry='lihv',
+            chemistry="lihv",
             voltage_threshold=Decimal("17.00"),
         )
 
@@ -1506,7 +1486,7 @@ class FlightModelTests(TestCase):
         self.session = FlightSession.objects.create(
             aircraft_name="Mallinimi",
             cell_count=4,
-            chemistry='lihv',
+            chemistry="lihv",
             voltage_threshold=Decimal("17.00"),
         )
 
@@ -1702,7 +1682,17 @@ class FlightPreviewDuplicateTests(SimpleTestCase):
 
         self.assertEqual(duplicates, [])
 
-class ImportPreviewTests(SimpleTestCase):
+class ImportPreviewTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.lihv = BatteryChemistry.objects.create(
+            name="LiHV",
+            slug="lihv",
+            session_start_voltage_per_cell=Decimal("4.25"),
+            is_active=True,
+            sort_order=20,
+        )
+
     def make_file(
         self,
         *,
@@ -1727,7 +1717,7 @@ class ImportPreviewTests(SimpleTestCase):
                 self.make_file(),
             ],
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         self.assertTrue(preview.is_valid)
@@ -1746,7 +1736,7 @@ foo,bar
                 ),
             ],
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         self.assertFalse(preview.is_valid)
@@ -1765,7 +1755,7 @@ foo,bar
                 second_file,
             ],
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         self.assertFalse(preview.is_valid)
@@ -1789,7 +1779,7 @@ foo,bar
                 invalid_file,
             ],
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         self.assertFalse(preview.is_valid)
@@ -1798,6 +1788,16 @@ foo,bar
         self.assertEqual(len(preview.errors), 1)
 
 class ImportSaveServiceTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.lihv = BatteryChemistry.objects.create(
+            name="LiHV",
+            slug="lihv",
+            session_start_voltage_per_cell=Decimal("4.25"),
+            is_active=True,
+            sort_order=20,
+        )
+
     def make_file(
         self,
         *,
@@ -1822,7 +1822,7 @@ class ImportSaveServiceTests(TestCase):
                 self.make_file(),
             ],
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         result = persist_import_preview(preview)
@@ -1887,7 +1887,7 @@ class ImportSaveServiceTests(TestCase):
                 third_file,
             ],
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         result = persist_import_preview(preview)
@@ -1913,7 +1913,7 @@ foo,bar
                 ),
             ],
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         with self.assertRaises(ImportSaveError):
