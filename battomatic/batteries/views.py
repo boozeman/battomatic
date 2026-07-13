@@ -98,13 +98,17 @@ class BatteryDetailView(DetailView):
 
         chart_events = []
 
-        for event in events:
+        charge_events = events.filter(
+            event=ChargeEvent.Event.CHARGE,
+        )
+
+        for event in charge_events:
             voltages = list(event.cell_voltages.all())
 
             values = [
-                float(v.voltage)
-                for v in voltages
-                if v.voltage is not None
+                float(voltage.voltage)
+                for voltage in voltages
+                if voltage.voltage is not None
             ]
 
             if not values:
