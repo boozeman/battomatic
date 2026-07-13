@@ -1859,21 +1859,21 @@ class ImportSaveServiceTests(TestCase):
 
     def test_saves_multiple_sessions_and_flights(self):
         first_file = self.make_file(
-            name="ModelName-2026-07-10-100000.csv",
+            name="Mallinimi-2026-07-10-100000.csv",
             content="""Date,Time,RxBt(V)
 2026-07-10,10:00:00.000,17.3
 2026-07-10,10:03:00.000,15.8
 """,
         )
         second_file = self.make_file(
-            name="ModelName-2026-07-10-100500.csv",
+            name="Mallinimi-2026-07-10-100500.csv",
             content="""Date,Time,RxBt(V)
 2026-07-10,10:05:00.000,16.2
 2026-07-10,10:08:00.000,15.4
 """,
         )
         third_file = self.make_file(
-            name="ModelName-2026-07-10-102000.csv",
+            name="Mallinimi-2026-07-10-102000.csv",
             content="""Date,Time,RxBt(V)
 2026-07-10,10:20:00.000,17.2
 2026-07-10,10:23:30.000,15.7
