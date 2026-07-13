@@ -6,7 +6,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse, resolve
 
 from .forms import FlightLogUploadForm
-from .models import Flight, FlightSession
+from .models import BatteryChemistry, Flight, FlightSession
 from .views import preview_flight_logs
 
 from .services.import_service import build_import_preview
@@ -705,7 +705,20 @@ foo,bar
 
         self.assertEqual(response.status_code, 405)
 
-
+    @classmethod
+    def setUpTestData(cls):
+        cls.lipo = BatteryChemistry.objects.create(
+            name="LiPo",
+            slug="lipo",
+            session_start_voltage_per_cell=Decimal("4.00"),
+            sort_order=10,
+        )
+        cls.lihv = BatteryChemistry.objects.create(
+            name="LiHV",
+            slug="lihv",
+            session_start_voltage_per_cell=Decimal("4.25"),
+            sort_order=20,
+        )
 
 @override_settings(
     STORAGES={
@@ -723,7 +736,7 @@ class FlightSessionVoltageThresholdTests(SimpleTestCase):
     def test_four_cell_lipo_threshold(self):
         threshold = get_new_battery_voltage_threshold(
             cell_count=4,
-            chemistry="lipo",
+            chemistry=self.lipo,
         )
 
         self.assertEqual(str(threshold), "16.00")
@@ -731,7 +744,7 @@ class FlightSessionVoltageThresholdTests(SimpleTestCase):
     def test_four_cell_lihv_threshold(self):
         threshold = get_new_battery_voltage_threshold(
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         self.assertEqual(str(threshold), "17.00")
@@ -739,7 +752,7 @@ class FlightSessionVoltageThresholdTests(SimpleTestCase):
     def test_six_cell_lipo_threshold(self):
         threshold = get_new_battery_voltage_threshold(
             cell_count=6,
-            chemistry="lipo",
+            chemistry=self.lipo,
         )
 
         self.assertEqual(str(threshold), "24.00")
@@ -747,7 +760,7 @@ class FlightSessionVoltageThresholdTests(SimpleTestCase):
     def test_six_cell_lihv_threshold(self):
         threshold = get_new_battery_voltage_threshold(
             cell_count=6,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         self.assertEqual(str(threshold), "25.50")
@@ -756,14 +769,14 @@ class FlightSessionVoltageThresholdTests(SimpleTestCase):
         with self.assertRaises(FlightSessionBuildError):
             get_new_battery_voltage_threshold(
                 cell_count=4,
-                chemistry="nimh",
+                chemistry=self.nimh,
             )
 
     def test_rejects_zero_cell_count(self):
         with self.assertRaises(FlightSessionBuildError):
             get_new_battery_voltage_threshold(
                 cell_count=0,
-                chemistry="lipo",
+                chemistry=self.lipo,
             )
 
 @override_settings(
@@ -834,7 +847,7 @@ class FlightSessionBuilderTests(SimpleTestCase):
         sessions = build_flight_sessions(
             flights,
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         self.assertEqual(len(sessions), 1)
@@ -877,7 +890,7 @@ class FlightSessionBuilderTests(SimpleTestCase):
         sessions = build_flight_sessions(
             flights,
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         self.assertEqual(len(sessions), 2)
@@ -913,7 +926,7 @@ class FlightSessionBuilderTests(SimpleTestCase):
         sessions = build_flight_sessions(
             flights,
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         self.assertEqual(len(sessions), 2)
@@ -930,7 +943,7 @@ class FlightSessionBuilderTests(SimpleTestCase):
         sessions = build_flight_sessions(
             [],
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         self.assertEqual(sessions, [])
@@ -956,7 +969,7 @@ class FlightSessionBuilderTests(SimpleTestCase):
         sessions = build_flight_sessions(
             flights,
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         self.assertEqual(len(sessions), 2)
@@ -986,7 +999,7 @@ class FlightSessionBuilderTests(SimpleTestCase):
         sessions = build_flight_sessions(
             flights,
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         self.assertEqual(len(sessions), 2)
@@ -1008,7 +1021,7 @@ class FlightSessionBuilderTests(SimpleTestCase):
         sessions = build_flight_sessions(
             flights,
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         self.assertEqual(
@@ -1033,7 +1046,7 @@ class FlightSessionBuilderTests(SimpleTestCase):
         sessions = build_flight_sessions(
             flights,
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         self.assertEqual(
@@ -1477,7 +1490,7 @@ class ImportPreviewTests(SimpleTestCase):
                 self.make_file(),
             ],
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         self.assertTrue(preview.is_valid)
@@ -1496,7 +1509,7 @@ foo,bar
                 ),
             ],
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         self.assertFalse(preview.is_valid)
@@ -1515,7 +1528,7 @@ foo,bar
                 second_file,
             ],
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         self.assertFalse(preview.is_valid)
@@ -1539,7 +1552,7 @@ foo,bar
                 invalid_file,
             ],
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         self.assertFalse(preview.is_valid)
@@ -1572,7 +1585,7 @@ class ImportSaveServiceTests(TestCase):
                 self.make_file(),
             ],
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         result = persist_import_preview(preview)
@@ -1637,7 +1650,7 @@ class ImportSaveServiceTests(TestCase):
                 third_file,
             ],
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         result = persist_import_preview(preview)
@@ -1663,7 +1676,7 @@ foo,bar
                 ),
             ],
             cell_count=4,
-            chemistry="lihv",
+            chemistry=self.lihv,
         )
 
         with self.assertRaises(ImportSaveError):

@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from django.db import transaction
-from flightlog.models import Flight, FlightSession
+from flightlog.models import BatteryChemistry, Flight, FlightSession
 
 from .parser import (
     FlightLogParseError,
@@ -46,7 +46,7 @@ def build_import_preview(
     *,
     uploaded_files,
     cell_count: int,
-    chemistry: str,
+    chemistry: BatteryChemistry,
 ) -> ImportPreview:
     flights = []
     errors = []
@@ -93,7 +93,7 @@ def save_import_preview(preview: ImportPreview) -> tuple[FlightSession, ...]:
         session = FlightSession.objects.create(
             aircraft_name=session_preview.model,
             cell_count=session_preview.cell_count,
-            chemistry=session_preview.chemistry,
+            chemistry=session_preview.chemistry.slug,
             voltage_threshold=session_preview.voltage_threshold,
         )
 

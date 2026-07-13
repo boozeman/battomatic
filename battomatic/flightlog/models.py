@@ -4,27 +4,62 @@ from django.db import models
 from django.db.models import Max, Min, Sum
 
 
-class FlightSession(models.Model):
-    class Chemistry(models.TextChoices):
-        LIPO = "lipo", "LiPo"
-        LIHV = "lihv", "LiHV"
+class BatteryChemistry(models.Model):
+    name = models.CharField(
+        max_length=50,
+        unique=True,
+    )
+    slug = models.SlugField(
+        max_length=50,
+        unique=True,
+    )
+    session_start_voltage_per_cell = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        help_text=(
+            "Per-cell voltage at or above which a new "
+            "battery session is started."
+        ),
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text=(
+            "Inactive chemistries are hidden from the "
+            "flight log upload form."
+        ),
+    )
+    sort_order = models.PositiveSmallIntegerField(
+        default=0,
+    )
 
+    class Meta:
+        ordering = [
+            "sort_order",
+            "name",
+        ]
+        verbose_name = "Battery chemistry"
+        verbose_name_plural = "Battery chemistries"
+
+    def __str__(self):
+        return self.name
+
+
+class FlightSession(models.Model):
     aircraft_name = models.CharField(
         max_length=100,
     )
-
     cell_count = models.PositiveSmallIntegerField()
 
+    # Snapshot of the chemistry used during import.
     chemistry = models.CharField(
-        max_length=4,
-        choices=Chemistry.choices,
+        max_length=50,
     )
 
+    # Snapshot of the complete battery threshold used during import.
     voltage_threshold = models.DecimalField(
         max_digits=5,
         decimal_places=2,
     )
-
     created_at = models.DateTimeField(
         auto_now_add=True,
     )
@@ -39,13 +74,13 @@ class FlightSession(models.Model):
         return (
             f"{self.aircraft_name} - "
             f"{self.cell_count}S "
-            f"{self.get_chemistry_display()}"
+            f"{self.chemistry}"
         )
 
     @property
     def first_flight(self):
         return self.flights.order_by(
-            "start_datetime"
+            "start_datetime",
         ).first()
 
     @property
@@ -101,23 +136,17 @@ class Flight(models.Model):
         on_delete=models.CASCADE,
         related_name="flights",
     )
-
     start_datetime = models.DateTimeField()
-
     end_datetime = models.DateTimeField()
-
     flight_time = models.DurationField()
-
     start_voltage = models.DecimalField(
         max_digits=5,
         decimal_places=2,
     )
-
     end_voltage = models.DecimalField(
         max_digits=5,
         decimal_places=2,
     )
-
     filename = models.CharField(
         max_length=255,
     )
@@ -126,7 +155,6 @@ class Flight(models.Model):
         ordering = [
             "start_datetime",
         ]
-
         constraints = [
             models.UniqueConstraint(
                 fields=[

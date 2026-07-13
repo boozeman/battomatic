@@ -3,7 +3,7 @@ from pathlib import Path
 from django import forms
 from django.conf import settings
 from django.core.exceptions import ValidationError
-
+from .models import BatteryChemistry
 
 def format_file_size(size: int) -> str:
     megabytes = size / (1024 * 1024)
@@ -47,11 +47,6 @@ class FlightLogUploadForm(forms.Form):
         (8, "8S"),
     ]
 
-    CHEMISTRY_CHOICES = [
-        ("lipo", "LiPo"),
-        ("lihv", "LiHV"),
-    ]
-
     cell_count = forms.TypedChoiceField(
         label="Cell Count",
         choices=CELL_COUNT_CHOICES,
@@ -62,15 +57,17 @@ class FlightLogUploadForm(forms.Form):
         ),
     )
 
-    chemistry = forms.ChoiceField(
+    chemistry = forms.ModelChoiceField(
         label="Chemistry",
-        choices=CHEMISTRY_CHOICES,
-        initial="lihv",
+        queryset=BatteryChemistry.objects.none(),
+        to_field_name="slug",
+        empty_label=None,
         widget=forms.Select(
-            attrs={"class": "form-control"},
-        ),        
+            attrs={
+                "class": "form-control",
+            },
+        ),
     )
-
     files = MultipleFileField(
         label="Flight log CSV files",
         required=True,
@@ -83,8 +80,30 @@ class FlightLogUploadForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        chemistry_queryset = (
+            BatteryChemistry.objects
+            .filter(is_active=True)
+            .order_by(
+                "sort_order",
+                "name",
+            )
+        )
+
+        self.fields["chemistry"].queryset = chemistry_queryset
+
+        default_chemistry = chemistry_queryset.filter(
+            slug="lihv",
+        ).first()
+
+        if default_chemistry is None:
+            default_chemistry = chemistry_queryset.first()
+
+        if default_chemistry is not None:
+            self.fields["chemistry"].initial = default_chemistry.slug
+
         self.fields["files"].help_text = (
-            "Import only one model, cell count or chemistry logs at the time "            
+            "Import only one model, cell count or chemistry "
+            "logs at the time. "
             f"Max {settings.FLIGHTLOG_MAX_FILES} files, "
             f"{format_file_size(settings.FLIGHTLOG_MAX_FILE_SIZE)} "
             "for size of each and "

@@ -2,12 +2,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 from decimal import Decimal
 from .parser import ParsedFlightLog, format_duration
-
-
-NEW_BATTERY_CELL_VOLTAGE = {
-    "lipo": Decimal("4.00"),
-    "lihv": Decimal("4.25"),
-}
+from flightlog.models import BatteryChemistry
 
 
 class FlightSessionBuildError(ValueError):
@@ -18,7 +13,7 @@ class FlightSessionBuildError(ValueError):
 class FlightSessionPreview:
     flights: tuple[ParsedFlightLog, ...]
     cell_count: int
-    chemistry: str
+    chemistry: BatteryChemistry
     start_reason: str = "first_flight"
 
     @property
@@ -93,28 +88,24 @@ class FlightSessionPreview:
 
 def get_new_battery_voltage_threshold(
     cell_count: int,
-    chemistry: str,
+    chemistry: BatteryChemistry,
 ) -> Decimal:
     if cell_count < 1:
         raise FlightSessionBuildError(
             "Cell Count must be at least 1"
         )
 
-    try:
-        per_cell_voltage = NEW_BATTERY_CELL_VOLTAGE[chemistry]
-    except KeyError as error:
-        raise FlightSessionBuildError(
-            f"Unknown Chemistry: {chemistry}"
-        ) from error
-
-    return per_cell_voltage * cell_count
+    return (
+        chemistry.session_start_voltage_per_cell
+        * cell_count
+    )
 
 
 def build_flight_sessions(
     flights: list[ParsedFlightLog],
     *,
     cell_count: int,
-    chemistry: str,
+    chemistry: BatteryChemistry,
 ) -> list[FlightSessionPreview]:
     if not flights:
         return []
