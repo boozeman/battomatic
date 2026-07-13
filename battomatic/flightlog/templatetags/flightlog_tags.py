@@ -29,9 +29,9 @@ def duration_human(value):
     minutes, seconds = divmod(remainder, 60)
 
     if hours:
-        return f"{hours} h {minutes:02d} min {seconds:02d} s"
+        return f"{hours}:{minutes:02d}:{seconds:02d}"
 
     if minutes:
-        return f"{minutes} min {seconds:02d} s"
+        return f"{minutes}:{seconds:02d}"
 
-    return f"{seconds} s"
+    return f"{minutes}:{seconds}"
