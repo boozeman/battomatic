@@ -843,7 +843,7 @@ class FlightSessionVoltageThresholdTests(TestCase):
         },
     }
 )
-class FlightSessionBuilderTests(TestCase):
+
 class FlightSessionBuilderTests(TestCase):
     @classmethod
     def setUpTestData(cls):
