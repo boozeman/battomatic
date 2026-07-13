@@ -1161,7 +1161,7 @@ class FlightSessionModelTests(TestCase):
     def test_session_string_representation(self):
         self.assertEqual(
             str(self.session),
-            "Mallinimi - 4S LiHV",
+            "Mallinimi - 4S LIHV",
         )
 
     def test_session_has_no_flights_initially(self):
