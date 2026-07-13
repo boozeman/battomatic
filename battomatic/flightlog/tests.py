@@ -265,7 +265,7 @@ class FlightLogUploadFormTests(TestCase):
         form = self.make_form(
             self.make_file(),
             cell_count="6",
-            chemistry="LiPo",
+            chemistry="lipo",
         )
 
         self.assertTrue(form.is_valid(), form.errors)
