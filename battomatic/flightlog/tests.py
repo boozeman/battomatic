@@ -281,7 +281,7 @@ class FlightLogUploadFormTests(TestCase):
     def test_requires_cell_count(self):
         form = FlightLogUploadForm(
             data={
-                "chemistry": "LiHV",
+                "chemistry": "lihv",
             },
             files={
                 "files": self.make_file(),
