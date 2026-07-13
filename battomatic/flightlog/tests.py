@@ -1131,7 +1131,7 @@ class FlightSessionModelTests(TestCase):
         self.session = FlightSession.objects.create(
             aircraft_name="Mallinimi",
             cell_count=4,
-            chemistry=FlightSession.Chemistry.LIHV,
+            chemistry='lihv',
             voltage_threshold=Decimal("17.00"),
         )
 
@@ -1337,7 +1337,7 @@ class FlightModelTests(TestCase):
         self.session = FlightSession.objects.create(
             aircraft_name="Mallinimi",
             cell_count=4,
-            chemistry=FlightSession.Chemistry.LIHV,
+            chemistry='lihv',
             voltage_threshold=Decimal("17.00"),
         )
 
