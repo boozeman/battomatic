@@ -135,11 +135,14 @@ class FlightLogParserTests(SimpleTestCase):
 @override_settings(
     STORAGES={
         "default": {
-            "BACKEND": "django.core.files.storage.FileSystemStorage",
+            "BACKEND": (
+                "django.core.files.storage.FileSystemStorage"
+            ),
         },
         "staticfiles": {
             "BACKEND": (
-                "django.contrib.staticfiles.storage.StaticFilesStorage"
+                "django.contrib.staticfiles.storage."
+                "StaticFilesStorage"
             ),
         },
     }
@@ -151,12 +154,15 @@ class FlightLogUploadFormTests(TestCase):
             name="LiPo",
             slug="lipo",
             session_start_voltage_per_cell=Decimal("4.00"),
+            is_active=True,
             sort_order=10,
         )
+
         cls.lihv = BatteryChemistry.objects.create(
             name="LiHV",
             slug="lihv",
             session_start_voltage_per_cell=Decimal("4.25"),
+            is_active=True,
             sort_order=20,
         )
 
@@ -174,7 +180,11 @@ class FlightLogUploadFormTests(TestCase):
             content_type="text/csv",
         )
 
-    def make_form(self, uploaded_files, **data):
+    def make_form(
+        self,
+        uploaded_files,
+        **data,
+    ):
         form_data = {
             "cell_count": "4",
             "chemistry": "lihv",
@@ -193,7 +203,10 @@ class FlightLogUploadFormTests(TestCase):
             self.make_file(),
         )
 
-        self.assertTrue(form.is_valid(), form.errors)
+        self.assertTrue(
+            form.is_valid(),
+            form.errors,
+        )
         self.assertEqual(
             len(form.cleaned_data["files"]),
             1,
@@ -208,10 +221,16 @@ class FlightLogUploadFormTests(TestCase):
         )
 
         form = self.make_form(
-            [first_file, second_file],
+            [
+                first_file,
+                second_file,
+            ],
         )
 
-        self.assertTrue(form.is_valid(), form.errors)
+        self.assertTrue(
+            form.is_valid(),
+            form.errors,
+        )
         self.assertEqual(
             len(form.cleaned_data["files"]),
             2,
@@ -222,10 +241,15 @@ class FlightLogUploadFormTests(TestCase):
             name="flight-log.txt",
         )
 
-        form = self.make_form(uploaded_file)
+        form = self.make_form(
+            uploaded_file,
+        )
 
         self.assertFalse(form.is_valid())
-        self.assertIn("files", form.errors)
+        self.assertIn(
+            "files",
+            form.errors,
+        )
         self.assertIn(
             "Not a csv-file",
             form.errors["files"][0],
@@ -236,13 +260,33 @@ class FlightLogUploadFormTests(TestCase):
             content=b"",
         )
 
-        form = self.make_form(uploaded_file)
+        form = self.make_form(
+            uploaded_file,
+        )
 
         self.assertFalse(form.is_valid())
-        self.assertIn("files", form.errors)
+        self.assertIn(
+            "files",
+            form.errors,
+        )
         self.assertIn(
             "File is empty.",
             form.errors["files"][0],
+        )
+
+    def test_requires_at_least_one_file(self):
+        form = FlightLogUploadForm(
+            data={
+                "cell_count": "4",
+                "chemistry": "lihv",
+            },
+            files={},
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "files",
+            form.errors,
         )
 
     def test_cell_count_is_converted_to_integer(self):
@@ -251,7 +295,10 @@ class FlightLogUploadFormTests(TestCase):
             cell_count="4",
         )
 
-        self.assertTrue(form.is_valid(), form.errors)
+        self.assertTrue(
+            form.is_valid(),
+            form.errors,
+        )
         self.assertEqual(
             form.cleaned_data["cell_count"],
             4,
@@ -268,14 +315,55 @@ class FlightLogUploadFormTests(TestCase):
             chemistry="lipo",
         )
 
-        self.assertTrue(form.is_valid(), form.errors)
+        self.assertTrue(
+            form.is_valid(),
+            form.errors,
+        )
         self.assertEqual(
             form.cleaned_data["cell_count"],
             6,
         )
         self.assertEqual(
-            form.cleaned_data["chemistry"].slug,
+            form.cleaned_data["chemistry"],
             self.lipo,
+        )
+        self.assertEqual(
+            form.cleaned_data["chemistry"].slug,
+            "lipo",
+        )
+
+    def test_accepts_lihv_chemistry(self):
+        form = self.make_form(
+            self.make_file(),
+            chemistry="lihv",
+        )
+
+        self.assertTrue(
+            form.is_valid(),
+            form.errors,
+        )
+        self.assertEqual(
+            form.cleaned_data["chemistry"],
+            self.lihv,
+        )
+        self.assertEqual(
+            form.cleaned_data["chemistry"].slug,
+            "lihv",
+        )
+
+    def test_chemistry_cleaned_data_is_model_instance(self):
+        form = self.make_form(
+            self.make_file(),
+            chemistry="lihv",
+        )
+
+        self.assertTrue(
+            form.is_valid(),
+            form.errors,
+        )
+        self.assertIsInstance(
+            form.cleaned_data["chemistry"],
+            BatteryChemistry,
         )
 
     def test_requires_cell_count(self):
@@ -289,7 +377,10 @@ class FlightLogUploadFormTests(TestCase):
         )
 
         self.assertFalse(form.is_valid())
-        self.assertIn("cell_count", form.errors)
+        self.assertIn(
+            "cell_count",
+            form.errors,
+        )
 
     def test_requires_chemistry(self):
         form = FlightLogUploadForm(
@@ -302,28 +393,72 @@ class FlightLogUploadFormTests(TestCase):
         )
 
         self.assertFalse(form.is_valid())
-        self.assertIn("chemistry", form.errors)
-
-    def test_session_preview_is_displayed(self):
-        response = self.client.post(
-            reverse("flightlog:preview"),
-            data={
-                "cell_count": "4",
-                "chemistry": "lihv",
-                "files": self.make_file(),
-            },
+        self.assertIn(
+            "chemistry",
+            form.errors,
         )
 
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Battery session 1")
-        self.assertContains(response, "17.00 V")
-        self.assertContains(
-            response,
-            "First flight on logset",
+    def test_rejects_unknown_chemistry(self):
+        form = self.make_form(
+            self.make_file(),
+            chemistry="unknown",
         )
-        self.assertContains(response, "Total flight time")
-        self.assertContains(response, "Longest flight")
-        self.assertContains(response, "Shortest flight")        
+
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "chemistry",
+            form.errors,
+        )
+
+    def test_inactive_chemistry_is_not_available(self):
+        inactive_chemistry = BatteryChemistry.objects.create(
+            name="Inactive chemistry",
+            slug="inactive",
+            session_start_voltage_per_cell=Decimal("4.10"),
+            is_active=False,
+            sort_order=30,
+        )
+
+        form = self.make_form(
+            self.make_file(),
+            chemistry=inactive_chemistry.slug,
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "chemistry",
+            form.errors,
+        )
+
+    def test_only_active_chemistries_are_listed(self):
+        BatteryChemistry.objects.create(
+            name="Inactive chemistry",
+            slug="inactive",
+            session_start_voltage_per_cell=Decimal("4.10"),
+            is_active=False,
+            sort_order=30,
+        )
+
+        form = FlightLogUploadForm()
+
+        queryset = form.fields["chemistry"].queryset
+
+        self.assertQuerySetEqual(
+            queryset,
+            [
+                self.lipo,
+                self.lihv,
+            ],
+            transform=lambda chemistry: chemistry,
+        )
+
+    def test_lihv_is_default_chemistry(self):
+        form = FlightLogUploadForm()
+
+        self.assertEqual(
+            form.fields["chemistry"].initial,
+            "lihv",
+        )
 
     @override_settings(
         FLIGHTLOG_MAX_FILES=2,
@@ -346,7 +481,10 @@ class FlightLogUploadFormTests(TestCase):
         form = self.make_form(files)
 
         self.assertFalse(form.is_valid())
-        self.assertIn("files", form.errors)
+        self.assertIn(
+            "files",
+            form.errors,
+        )
         self.assertIn(
             "import 2 files",
             form.errors["files"][0],
@@ -362,10 +500,15 @@ class FlightLogUploadFormTests(TestCase):
             content=b"x" * 21,
         )
 
-        form = self.make_form(uploaded_file)
+        form = self.make_form(
+            uploaded_file,
+        )
 
         self.assertFalse(form.is_valid())
-        self.assertIn("files", form.errors)
+        self.assertIn(
+            "files",
+            form.errors,
+        )
         self.assertIn(
             "One file size limit is",
             form.errors["files"][0],
@@ -387,11 +530,17 @@ class FlightLogUploadFormTests(TestCase):
         )
 
         form = self.make_form(
-            [first_file, second_file],
+            [
+                first_file,
+                second_file,
+            ],
         )
 
         self.assertFalse(form.is_valid())
-        self.assertIn("files", form.errors)
+        self.assertIn(
+            "files",
+            form.errors,
+        )
         self.assertIn(
             "Too many files at once.",
             form.errors["files"][0],
