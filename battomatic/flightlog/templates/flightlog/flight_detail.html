@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
+  <div class="mb-6">
+    <a
+      href="{% url 'flightlog:session-detail' flight.session.pk %}"
+      class="text-sm font-medium text-blue-700 hover:underline"
+    >
+      ← {{ flight.session.aircraft_name }} session
+    </a>
+
+    <h1 class="mt-2 text-2xl font-bold text-gray-900">
+      Flight details
+    </h1>
+
+    <p class="mt-1 text-sm text-gray-600">
+      {{ flight.start_datetime|date:"Y-m-d H:i:s" }}
+    </p>
+  </div>
+
+  <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+    <dl class="divide-y divide-gray-100">
+      <div class="grid gap-1 px-4 py-4 sm:grid-cols-3">
+        <dt class="text-sm font-medium text-gray-500">
+          Aircraft
+        </dt>
+
+        <dd class="text-sm text-gray-900 sm:col-span-2">
+          {{ flight.session.aircraft_name }}
+        </dd>
+      </div>
+
+      <div class="grid gap-1 px-4 py-4 sm:grid-cols-3">
+        <dt class="text-sm font-medium text-gray-500">
+          Battery
+        </dt>
+
+        <dd class="text-sm text-gray-900 sm:col-span-2">
+          {{ flight.session.cell_count }}S
+          {{ flight.session.chemistry }}
+        </dd>
+      </div>
+
+      <div class="grid gap-1 px-4 py-4 sm:grid-cols-3">
+        <dt class="text-sm font-medium text-gray-500">
+          Start
+        </dt>
+
+        <dd class="text-sm text-gray-900 sm:col-span-2">
+          {{ flight.start_datetime|date:"Y-m-d H:i:s" }}
+        </dd>
+      </div>
+
+      <div class="grid gap-1 px-4 py-4 sm:grid-cols-3">
+        <dt class="text-sm font-medium text-gray-500">
+          End
+        </dt>
+
+        <dd class="text-sm text-gray-900 sm:col-span-2">
+          {{ flight.end_datetime|date:"Y-m-d H:i:s" }}
+        </dd>
+      </div>
+
+      <div class="grid gap-1 px-4 py-4 sm:grid-cols-3">
+        <dt class="text-sm font-medium text-gray-500">
+          Flight time
+        </dt>
+
+        <dd class="text-sm font-semibold text-gray-900 sm:col-span-2">
+          {{ flight.flight_time }}
+        </dd>
+      </div>
+
+      <div class="grid gap-1 px-4 py-4 sm:grid-cols-3">
+        <dt class="text-sm font-medium text-gray-500">
+          Start voltage
+        </dt>
+
+        <dd class="text-sm text-gray-900 sm:col-span-2">
+          {{ flight.start_voltage|floatformat:2 }} V
+        </dd>
+      </div>
+
+      <div class="grid gap-1 px-4 py-4 sm:grid-cols-3">
+        <dt class="text-sm font-medium text-gray-500">
+          End voltage
+        </dt>
+
+        <dd class="text-sm text-gray-900 sm:col-span-2">
+          {{ flight.end_voltage|floatformat:2 }} V
+        </dd>
+      </div>
+
+      <div class="grid gap-1 px-4 py-4 sm:grid-cols-3">
+        <dt class="text-sm font-medium text-gray-500">
+          Source file
+        </dt>
+
+        <dd class="break-all text-sm text-gray-900 sm:col-span-2">
+          {{ flight.filename }}
+        </dd>
+      </div>
+    </dl>
+  </div>
+</div>
+{% endblock %}

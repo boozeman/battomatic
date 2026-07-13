@@ -1,8 +1,9 @@
 from django.contrib import messages
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_GET, require_POST
 
 from .forms import FlightLogUploadForm
+from .models import Flight, FlightSession
 from .services.import_service import (
     build_import_preview,
     save_import_preview,
@@ -17,6 +18,53 @@ def _preview_context(*, form, preview=None):
         "duplicate_flights": preview.duplicates if preview else (),
         "errors": preview.errors if preview else (),
     }
+
+@require_GET
+def session_list(request):
+    sessions = FlightSession.objects.prefetch_related(
+        "flights",
+    ).all()
+
+    return render(
+        request,
+        "flightlog/session_list.html",
+        {
+            "sessions": sessions,
+        },
+    )
+
+
+@require_GET
+def session_detail(request, pk):
+    session = get_object_or_404(
+        FlightSession.objects.prefetch_related("flights"),
+        pk=pk,
+    )
+
+    return render(
+        request,
+        "flightlog/session_detail.html",
+        {
+            "session": session,
+            "flights": session.flights.all(),
+        },
+    )
+
+
+@require_GET
+def flight_detail(request, pk):
+    flight = get_object_or_404(
+        Flight.objects.select_related("session"),
+        pk=pk,
+    )
+
+    return render(
+        request,
+        "flightlog/flight_detail.html",
+        {
+            "flight": flight,
+        },
+    )
 
 @require_GET
 def upload_flight_logs(request):
