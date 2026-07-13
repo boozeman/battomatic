@@ -1,6 +1,7 @@
 server {
     listen 80;
     server_name battomatic.${DJANGO_SITE_URL};
+    client_max_body_size 110M;
     location / {
         proxy_pass http://batt-o-matic:3005;
         proxy_set_header Host $host;
