@@ -1842,7 +1842,7 @@ class ImportSaveServiceTests(TestCase):
 
         self.assertEqual(
             session.aircraft_name,
-            "ModelName",
+            "Mallinimi",
         )
         self.assertEqual(
             session.cell_count,
