@@ -32,6 +32,26 @@ CSV_CONTENT = """Date,Time,FM,Ptch(rad),Roll(rad),Yaw(rad),RxBt(V),Curr(A),Capa(
 2026-07-10,16:39:42.300,"AIR",0.00,0.00,0.57,17.1,0.8,4,99
 """
 
+class FlightLogImportServiceTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.lipo = BatteryChemistry.objects.create(
+            name="LiPo",
+            slug="lipo",
+            session_start_voltage_per_cell=Decimal("4.00"),
+            is_active=True,
+            sort_order=10,
+        )
+
+        cls.lihv = BatteryChemistry.objects.create(
+            name="LiHV",
+            slug="lihv",
+            session_start_voltage_per_cell=Decimal("4.25"),
+            is_active=True,
+            sort_order=20,
+        )
+
+
 @override_settings(
     STORAGES={
         "default": {
