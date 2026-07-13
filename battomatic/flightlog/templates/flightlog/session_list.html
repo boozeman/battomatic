@@ -20,30 +20,30 @@
 
 
     <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200">
+      <table class="table">
         <thead class="bg-gray-50">
           <tr>
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+            <th>
               Date
             </th>
 
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+            <th>
               Aircraft
             </th>
 
-            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+            <th>
               Battery
             </th>
 
-            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-600">
+            <th>
               Flights
             </th>
 
-            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-600">
+            <th>
               Total flight time
             </th>
 
-            <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-600">
+            <th>
               Start voltage
             </th>
           </tr>
@@ -51,8 +51,8 @@
 
         <tbody class="divide-y divide-gray-100 bg-white">
           {% for session in sessions %}
-            <tr class="hover:bg-gray-50">
-              <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
+            <tr>
+              <td>
                 {% if session.date %}
                   {{ session.date|date:"Y-m-d" }}
                 {% else %}
@@ -60,7 +60,7 @@
                 {% endif %}
               </td>
 
-              <td class="px-4 py-3 text-sm font-medium">
+              <td>
                 <a
                   href="{% url 'flightlog:session-detail' session.pk %}"
                   class="text-blue-700 hover:underline"
@@ -69,19 +69,19 @@
                 </a>
               </td>
 
-              <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
+              <td>
                 {{ session.cell_count }}S {{ session.chemistry }}
               </td>
 
-              <td class="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700">
+              <td>
                 {{ session.flight_count }}
               </td>
 
-              <td class="whitespace-nowrap px-4 py-3 text-right text-sm font-medium text-gray-900">
+              <td>
                 {{ session.total_flight_time|duration_human }}
               </td>
 
-              <td class="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700">
+              <td>
                 {% if session.start_voltage != None %}
                   {{ session.start_voltage|floatformat:2 }} V
                 {% else %}
@@ -93,7 +93,7 @@
             <tr>
               <td
                 colspan="6"
-                class="px-4 py-10 text-center text-sm text-gray-500"
+                
               >
                 No flight sessions have been imported yet.
               </td>
