@@ -102,7 +102,7 @@ echo -e "\e[35m- Trying to start mariadb, adminer and nginx-proxy...\e[0m"
 cd ${TARGET_DIR_ABS}
 
 docker compose up mariadb adminer nginx-proxy -d
-sleep 5
+sleep 10
 
 echo -e "\e[35m- Let's check if the mariadb is on fire...\e[0m"
 
@@ -119,9 +119,16 @@ if docker inspect -f '{{.State.Running}}' mariadb 2>/dev/null | grep -q true; th
     echo -e "\e[35mGood! MariaDB is running. Let's wait for a while and make some DB-Shenanigans then...\e[0m"
     sleep 8
     cd ${TARGET_DIR_ABS}
-    docker exec -it mariadb mariadb -u root -h mariadb --password=$DB_ROOT_PASS -Bse "$SQL"
-    echo
-    echo -e "\e[35mDatabase is now set\e[0m"
+    
+    if docker exec -i mariadb mariadb -u root -h mariadb --password=$DB_ROOT_PASS -Bse "$SQL"
+        then
+            echo -e "\e[35mDatabase is now set\e[0m"
+        else
+            exit_code=$?
+            echo -e "\e[31mDatabase initializion failed, exit-code: $exit_code \e[0m" >&2
+            exit "$exit_code"
+    fi   
+    
 else
     echo
     echo -e "\e[31mCheck with the command\n\n docker compose logs mariadb --follow\n\n What is wrong with mariadb?\e[0m"
