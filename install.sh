@@ -42,7 +42,11 @@ echo
 read -rp "Docker Target directory or hit enter: [$DEFAULT_TARGET_DIR]: " TARGET_DIR
 TARGET_DIR=${TARGET_DIR:-$DEFAULT_TARGET_DIR}
 echo
-read -rp "Mariadb root password: [DO NOT USE $ on Password!] " DB_ROOT_PASS
+while true; do
+    read -rp "Mariadb root password: [DO NOT USE $ on Password!] " DB_ROOT_PASS
+    [[ -n "$DB_ROOT_PASS" ]] && break
+    echo -e "\e[31mMadiaDB password can't be empty\e[0m"
+done
 echo
 read -rp "Mariadb database name or hit enter = [$DEFAULT_DB_NAME]: " DB_NAME
 DB_NAME=${DB_NAME:-$DEFAULT_DB_NAME}
@@ -101,7 +105,25 @@ echo -e "\e[35m- Trying to start mariadb, adminer and nginx-proxy...\e[0m"
 
 cd ${TARGET_DIR_ABS}
 
+# Pulling the Docker Containers
+for i in {1..3}; do
+    if docker compose pull mariadb adminer nginx-proxy; then
+        echo "Pull onnistui."
+        break
+    fi
+
+    echo "Pull failure (round $i/3)."
+
+    if [[ $i -eq 3 ]]; then
+        echo -e "\e[31mPull failure 3 times, exiting...\e[0m"
+        exit 1
+    fi
+    sleep 5
+done
+
+# Starting the Docker Containers
 docker compose up mariadb adminer nginx-proxy -d
+
 sleep 10
 
 echo -e "\e[35m- Let's check if the mariadb is on fire...\e[0m"
