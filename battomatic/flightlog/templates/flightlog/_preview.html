@@ -34,24 +34,30 @@
 {% endif %}
 
 {% if duplicate_flights %}
-<div class="alert alert-warning">
-    <h2 class="h5">Duplicate flights detected</h2>
+  <div class="alert alert-warning" role="alert">
+    <h2>Duplicate flight logs detected</h2>
 
     <p>
-        The preview was not created because the same flight
-        appears more than once in the selected files.
+      One or more selected flight logs have already been imported
+      or appear more than once in the selected files.
+      No flight logs were saved.
     </p>
 
-    <ul class="mb-0">
-        {% for duplicate in duplicate_flights %}
-            <li>
-                <strong>{{ duplicate.filename }}</strong>
-                —
-                {{ duplicate.start_datetime|date:"Y-m-d H:i:s" }}
-            </li>
-        {% endfor %}
+    <ul>
+      {% for duplicate in duplicate_flights %}
+        <li>
+          {{ duplicate.filename }} —
+          {{ duplicate.start_datetime|date:"Y-m-d H:i:s" }}
+
+          {% if duplicate.already_imported %}
+            <strong>Previously imported</strong>
+          {% else %}
+            <strong>Selected more than once</strong>
+          {% endif %}
+        </li>
+      {% endfor %}
     </ul>
-</div>
+  </div>
 {% endif %}
 
 {% if parsed_logs %}

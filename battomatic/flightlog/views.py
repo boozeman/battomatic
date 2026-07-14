@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_GET, require_POST
+from django.db import IntegrityError
 
 from .forms import FlightLogUploadForm
 from .models import Flight, FlightSession
@@ -152,7 +153,26 @@ def import_flight_logs(request):
             status=400,
         )
 
-    created_sessions = save_import_preview(preview)
+    try:
+        created_sessions = save_import_preview(preview)
+    except IntegrityError:
+        form.add_error(
+            None,
+            (
+                "One or more flight logs have already been imported. "
+                "No flight logs were saved."
+            ),
+        )
+
+        return render(
+            request,
+            "flightlog/_preview.html",
+            _preview_context(
+                form=form,
+                preview=preview,
+            ),
+            status=409,
+        )
 
     return render(
         request,
