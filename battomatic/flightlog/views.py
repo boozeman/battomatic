@@ -129,14 +129,16 @@ def preview_flight_logs(request):
 
 @require_POST
 def import_flight_logs(request):
-    form = FlightLogUploadForm(request.POST, request.FILES)
+    form = FlightLogUploadForm(
+        request.POST,
+        request.FILES,
+    )
 
     if not form.is_valid():
         return render(
             request,
             "flightlog/_preview.html",
             _preview_context(form=form),
-            status=400,
         )
 
     preview = build_import_preview(
@@ -149,8 +151,10 @@ def import_flight_logs(request):
         return render(
             request,
             "flightlog/_preview.html",
-            _preview_context(form=form, preview=preview),
-            status=400,
+            _preview_context(
+                form=form,
+                preview=preview,
+            ),
         )
 
     try:
@@ -171,7 +175,6 @@ def import_flight_logs(request):
                 form=form,
                 preview=preview,
             ),
-            status=409,
         )
 
     return render(
