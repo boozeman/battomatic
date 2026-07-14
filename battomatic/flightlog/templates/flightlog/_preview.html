@@ -1,6 +1,6 @@
 {% if form.errors %}
     <div class="alert alert-danger">
-        <h2 class="h5">Unable to create preview</h2>
+        <h2 class="h5">Unable to import flight logs</h2>
 
         {{ form.non_field_errors }}
 
@@ -183,7 +183,7 @@
         hx-post="{% url 'flightlog:import' %}"
         hx-include="#flight-log-upload-form"
         hx-target="#flight-log-preview"
-        hx-swap="innerHTML"
+        hx-swap="innerHTML show: top"
         hx-encoding="multipart/form-data"
         hx-disabled-elt="this"
     >

@@ -173,7 +173,7 @@ def import_flight_logs(request):
             "flightlog/_preview.html",
             _preview_context(
                 form=form,
-                preview=preview,
+                preview=None,
             ),
         )
 

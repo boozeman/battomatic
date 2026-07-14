@@ -15,7 +15,7 @@
             enctype="multipart/form-data"
             hx-post="{% url 'flightlog:preview' %}"
             hx-target="#flight-log-preview"
-            hx-swap="innerHTML"
+            hx-swap="innerHTML show: top"
             hx-encoding="multipart/form-data"
             hx-indicator="#flight-log-request-indicator"
             hx-disabled-elt="find button[type='submit']"
