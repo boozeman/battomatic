@@ -1,0 +1,12 @@
+{
+  "name": "battomatic-ui",
+  "private": true,
+  "scripts": {
+    "build:css": "npx @tailwindcss/cli -i ./assets/css/app.css -o ./staticfiles/css/battomatic.css --minify",
+    "watch:css": "npx @tailwindcss/cli -i ./assets/css/app.css -o ./staticfiles/css/battomatic.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.0",
+    "tailwindcss": "^4.1.0"
+  }
+}

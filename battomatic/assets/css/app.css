@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+@source "../../templates";
+@source "../../batteries";
+@source "../../flightlog";
+
+@theme {
+  --color-app-bg: #020617;
+  --color-app-surface: #0f172a;
+  --color-app-surface-raised: #1e293b;
+  --color-app-border: #334155;
+  --color-app-muted: #94a3b8;
+  --color-app-accent: #3b82f6;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply min-h-screen bg-app-bg text-slate-100 antialiased;
+  }
+
+  input,
+  select,
+  textarea {
+    @apply outline-none;
+  }
+}
+
+@layer components {
+  .nav-link {
+    @apply text-slate-300 transition-colors hover:text-white focus-visible:text-white;
+  }
+
+  .card {
+    @apply rounded-2xl border border-app-border bg-app-surface/85 p-5 shadow-xl shadow-black/20;
+  }
+
+  .form-control {
+    @apply w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-slate-100 shadow-sm placeholder:text-slate-500 transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20;
+  }
+
+  .label {
+    @apply mb-1 block text-sm font-medium text-slate-300;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-500 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:pointer-events-none disabled:opacity-60;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-lg border border-slate-600 bg-slate-900 px-4 py-2 font-semibold text-slate-100 transition hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950;
+  }
+
+  .table {
+    @apply w-full text-left text-sm;
+  }
+
+  .table th {
+    @apply border-b border-slate-700 px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-400;
+  }
+
+  .table td {
+    @apply border-b border-slate-800 px-3 py-3 align-top text-slate-200;
+  }
+
+  .table tbody tr {
+    @apply transition-colors hover:bg-slate-800/40;
+  }
+
+  .link {
+    @apply text-blue-300 underline-offset-4 transition hover:text-blue-200 hover:underline;
+  }
+
+  .pill {
+    @apply inline-flex rounded-full border border-slate-700 bg-slate-800 px-2 py-0.5 text-xs text-slate-300;
+  }
+
+  .metric {
+    @apply rounded-xl border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-400;
+  }
+
+  .metric span,
+  .metric strong {
+    @apply mt-1 block text-2xl font-bold text-slate-100;
+  }
+
+  .errorlist {
+    @apply mt-1 text-sm text-red-300;
+  }
+}
