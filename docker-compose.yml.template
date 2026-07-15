@@ -39,8 +39,6 @@ services:
     env_file:
       - .env
     restart: unless-stopped
-    volumes:
-      - ${TARGET_DIR_ABS}/battomatic:/battomatic
     ports:
       - "3005:3005/tcp"
     depends_on:
