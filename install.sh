@@ -42,7 +42,11 @@ echo
 read -rp "Docker Target directory or hit enter: [$DEFAULT_TARGET_DIR]: " TARGET_DIR
 TARGET_DIR=${TARGET_DIR:-$DEFAULT_TARGET_DIR}
 echo
-read -rp "Mariadb root password: [DO NOT USE $ on Password!] " DB_ROOT_PASS
+while true; do
+    read -rp "Mariadb root password: [DO NOT USE $ on Password!] " DB_ROOT_PASS
+    [[ -n "$DB_ROOT_PASS" ]] && break
+    echo -e "\e[31mMadiaDB password can't be empty\e[0m"
+done
 echo
 read -rp "Mariadb database name or hit enter = [$DEFAULT_DB_NAME]: " DB_NAME
 DB_NAME=${DB_NAME:-$DEFAULT_DB_NAME}
@@ -97,11 +101,29 @@ envsubst '${DB_ROOT_PASS} ${TIMEZONE} ${DJANGO_SECRET_KEY} ${DJANGO_SITE_URL} ${
 envsubst '${TARGET_DIR_ABS}' < "docker-compose.yml.template" > "$TARGET_DIR_ABS/docker-compose.yml"
 envsubst '${DJANGO_SITE_URL}' < "nginx.conf.template" > "$TARGET_DIR_ABS/nginx/nginx.conf"
 
-echo -e "\e[35m- Trying to start mariadb, adminer and nginx-proxy...\e[0m"
+echo -e "\e[35m- Trying to pull and start mariadb, adminer and nginx-proxy...\e[0m"
 
 cd ${TARGET_DIR_ABS}
 
+# Pulling the Docker Containers
+for i in {1..3}; do
+    if docker compose pull mariadb adminer nginx-proxy; then
+        echo -e "\e[35mPull succeeded.\e[0m"
+        break
+    fi
+
+    echo "Pull failure (round $i/3)."
+
+    if [[ $i -eq 3 ]]; then
+        echo -e "\e[31mPull failure 3 times on a row, exiting...\e[0m"
+        exit 1
+    fi
+    sleep 5
+done
+
+# Starting the Docker Containers
 docker compose up mariadb adminer nginx-proxy -d
+
 sleep 10
 
 echo -e "\e[35m- Let's check if the mariadb is on fire...\e[0m"
@@ -148,9 +170,9 @@ if docker inspect -f '{{.State.Running}}' batt-o-matic 2>/dev/null | grep -q tru
     docker compose exec -it batt-o-matic python manage.py migrate
     docker compose exec -it batt-o-matic python manage.py createsuperuser
     echo    
-    echo -e "\e[35mAll Done Check the connections for\nhttp://$HOSTNAME:3005/\nhttp://battomatic.$HOSTNAME/\e[0m"
+    echo -e "\e[35mCheck the website for\nhttp://$HOSTNAME:3005/\nhttp://battomatic.$FQDN/\e[0m"
     echo
-    echo -e "\e[35mIf all went right, you can login and add your first battery on the database.\n\nBTW! You need to add atleast A-record for that battomatic.$HOSTNAME to your router DNS\e[0m"
+    echo -e "\e[35mIf all went right, you can login and then add your first battery on the database.\nLook at the values on Battery chemistries table with Admin\nThey are intended to identify a fully charged battery in flight logs.\n\nBTW! You need to add atleast A-record for that battomatic.$FQDN to your router DNS\e[0m"
 else
     echo
     echo -e "\e[31m Something came up off the ass of Timo\n\n Check with docker compose logs batt-o-matic --follow\nWhat it is complaining this time...\e[0m"
