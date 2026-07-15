@@ -1,107 +1,33 @@
 {% extends "base.html" %}
 {% load flightlog_tags %}
 
-
 {% block content %}
 <div class="mb-6">
-    
-    <h1 class="text-3xl font-bold">
-        Flight sessions
-    </h1>
-
-    <div class="flex flex-wrap gap-2 mt-4 border-t border-b border-slate-200 py-3">
-    {% if user.is_authenticated %}
-      <a href="{% url 'flightlog:upload' %}" class="btn px-3 py-1 text-sm">
-        Import flight logs
-      </a>
-    {% endif %}
-  </div>        
+    <h1 class="text-3xl font-bold">Flight sessions</h1>
+    <div class="mt-4 flex flex-wrap gap-2 border-y border-slate-800 py-3">
+        {% if user.is_authenticated %}
+            <a href="{% url 'flightlog:upload' %}" class="btn px-3 py-1 text-sm">Import flight logs</a>
+        {% endif %}
+    </div>
 </div>
 
-
 <div class="card overflow-x-auto">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>
-              Date
-            </th>
-
-            <th>
-              Aircraft
-            </th>
-
-            <th>
-              Battery
-            </th>
-
-            <th>
-              Flights
-            </th>
-
-            <th>
-              Total flight time
-            </th>
-
-            <th>
-              Start voltage
-            </th>
-          </tr>
-        </thead>
-
+    <table class="table">
+        <thead><tr><th>Date</th><th>Aircraft</th><th>Battery</th><th>Flights</th><th>Total flight time</th><th>Start voltage</th></tr></thead>
         <tbody>
-          {% for session in sessions %}
-            <tr>
-              <td>
-                {% if session.date %}
-                  {{ session.date|date:"d.m.Y" }}
-                {% else %}
-                  —
-                {% endif %}
-              </td>
-
-              <td>
-                <a
-                  href="{% url 'flightlog:session-detail' session.pk %}"
-                  class="text-blue-700 hover:underline"
-                >
-                  {{ session.aircraft_name }}
-                </a>
-              </td>
-
-              <td>
-                {{ session.cell_count }}S {{ session.chemistry }}
-              </td>
-
-              <td>
-                {{ session.flight_count }}
-              </td>
-
-              <td>
-                {{ session.total_flight_time|duration_human }}
-              </td>
-
-              <td>
-                {% if session.start_voltage != None %}
-                  {{ session.start_voltage|floatformat:2 }} V
-                {% else %}
-                  —
-                {% endif %}
-              </td>
-            </tr>
-          {% empty %}
-            <tr>
-              <td
-                colspan="6"
-                
-              >
-                No flight sessions have been imported yet.
-              </td>
-            </tr>
-          {% endfor %}
+            {% for session in sessions %}
+                <tr>
+                    <td>{% if session.date %}{{ session.date|date:"d.m.Y" }}{% else %}—{% endif %}</td>
+                    <td><a href="{% url 'flightlog:session-detail' session.pk %}" class="link">{{ session.aircraft_name }}</a></td>
+                    <td>{{ session.cell_count }}S {{ session.chemistry }}</td>
+                    <td>{{ session.flight_count }}</td>
+                    <td>{{ session.total_flight_time|duration_human }}</td>
+                    <td>{% if session.start_voltage != None %}{{ session.start_voltage|floatformat:2 }} V{% else %}—{% endif %}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6" class="py-8 text-center text-slate-400">No flight sessions have been imported yet.</td></tr>
+            {% endfor %}
         </tbody>
-      </table>
-    </div>
-  </div>
-
+    </table>
+</div>
 {% endblock %}

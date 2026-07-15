@@ -87,6 +87,22 @@
     @apply mt-1 block text-2xl font-bold text-slate-100;
   }
 
+  .alert {
+    @apply mb-6 rounded-xl border p-4 text-sm;
+  }
+
+  .alert-error {
+    @apply border-red-500/40 bg-red-500/10 text-red-100;
+  }
+
+  .alert-warning {
+    @apply border-amber-500/40 bg-amber-500/10 text-amber-100;
+  }
+
+  .alert-success {
+    @apply border-emerald-500/40 bg-emerald-500/10 text-emerald-100;
+  }
+
   .errorlist {
     @apply mt-1 text-sm text-red-300;
   }
