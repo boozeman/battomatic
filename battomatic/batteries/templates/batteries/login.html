@@ -3,11 +3,11 @@
 
 <h1 class="text-3xl font-bold mb-6">Login</h1>
 
-<form method="post" class="card mb-6 flex gap-3 items-end">
+<form method="post" class="card mb-6 flex flex-col gap-4 sm:flex-row sm:items-end">
     {% csrf_token %}{{ form.non_field_errors }}
-    <label><span class="label">Username</span>{{ form.username }}</label>
-    <label><span class="label">Password</span>{{ form.password }}</label>   
-    <button class="btn">Login</button>            
+    <label class="w-full"><span class="label">Username</span>{{ form.username }}</label>
+    <label class="w-full"><span class="label">Password</span>{{ form.password }}</label>
+    <button class="btn w-full sm:w-auto">Login</button>
 </form>
 
 {% endblock %}
