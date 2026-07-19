@@ -1,6 +1,6 @@
 # Batt-o-matic 1.1
 
-Batt-o-matic is a Django + MariaDB web app for maintaining a rechargeable battery inventory and charge log running on Docker container.
+Batt-o-matic is a Django + MariaDB web app for maintaining a rechargeable battery inventory, charge log running and Edge-TX Flightlog Storage on Docker container.
 
 <table border='0'>
   <tr>
@@ -30,9 +30,9 @@ Batt-o-matic is a Django + MariaDB web app for maintaining a rechargeable batter
 - Battery Management when logged
 - Public read-only access with authenticated editing
 - QR code generation for each battery
-- Quick Charge workflow via QR 
+- Quick Charge workflow via QR sticker 
 - Edge-TX log format importer for flight logs (Session->Battery>Flights)
-- Unifiec Tailwind CSS throughout the project
+- Unified Tailwind CSS throughout the project
   
 ## Technical details
 - Docker-based deployment
