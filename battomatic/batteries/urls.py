@@ -45,6 +45,11 @@ urlpatterns = [
         name="battery_label_pdf"
     ),
     path(
+        "batteries/labels/",
+        views.battery_labels_pdf,
+        name="battery_labels_pdf"
+    ),
+    path(
         "events/",
         views.ChargeEventListView.as_view(),
         name="charge_event_list"

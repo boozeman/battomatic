@@ -398,21 +398,12 @@ def battery_qr_code(request, pk):
         content_type="image/png",
     )
 
-# Battery labels to PDF
+LABEL_WIDTH = 40 * mm
+LABEL_HEIGHT = 24 * mm
 
-def battery_label_pdf(request, pk):
-    battery = get_object_or_404(Battery, pk=pk)
 
-    response = HttpResponse(content_type="application/pdf")
-    response["content-Disposition"] = (f'inline; filename="battery_{battery.id}_label.pdf"')
-
-    # Label size
-
-    width = 40 * mm
-    height = 24 * mm
-
-    pdf = canvas.Canvas(response, pagesize=(width, height))
-
+def draw_battery_label(pdf, battery, request):
+    """Draw one 40 x 24 mm battery label on the current PDF page."""
     # QR Code
 
     qr_url = request.build_absolute_uri(
@@ -452,7 +443,11 @@ def battery_label_pdf(request, pk):
 
     # Draw the QR-code
 
-    pdf.drawImage(ImageReader(qr_buffer), qr_x, qr_y, width=qr_size, height=qr_size, preserveAspectRatio=True, mask="auto")
+    pdf.drawImage(
+        ImageReader(qr_buffer), qr_x, qr_y,
+        width=qr_size, height=qr_size,
+        preserveAspectRatio=True, mask="auto",
+    )
 
     # Footer
 
@@ -462,7 +457,34 @@ def battery_label_pdf(request, pk):
     pdf.drawString(6 * mm,-35 * mm,"Batt-o-Matic")
     pdf.restoreState()
 
+
+# Battery labels to PDF
+
+def battery_label_pdf(request, pk):
+    battery = get_object_or_404(Battery, pk=pk)
+
+    response = HttpResponse(content_type="application/pdf")
+    response["content-Disposition"] = f'inline; filename="battery_{battery.id}_label.pdf"'
+
+    pdf = canvas.Canvas(response, pagesize=(LABEL_WIDTH, LABEL_HEIGHT))
+    draw_battery_label(pdf, battery, request)
     pdf.showPage()
+    pdf.save()
+
+    return response
+
+
+def battery_labels_pdf(request):
+    """Return all battery labels as one PDF, one label-sized page per battery."""
+    batteries = Battery.objects.all()
+
+    response = HttpResponse(content_type="application/pdf")
+    response["content-Disposition"] = 'inline; filename="battery_labels.pdf"'
+
+    pdf = canvas.Canvas(response, pagesize=(LABEL_WIDTH, LABEL_HEIGHT))
+    for battery in batteries:
+        draw_battery_label(pdf, battery, request)
+        pdf.showPage()
     pdf.save()
 
     return response
