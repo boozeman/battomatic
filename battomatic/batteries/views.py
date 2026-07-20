@@ -404,6 +404,19 @@ LABEL_HEIGHT = 24 * mm
 
 def draw_battery_label(pdf, battery, request):
     """Draw one 40 x 24 mm battery label on the current PDF page."""
+    # A thin inset line makes the label edge easy to cut out without risking
+    # that the stroke is clipped by the PDF page boundary.
+    border_inset = 0.25 * mm
+    pdf.saveState()
+    pdf.setLineWidth(0.15 * mm)
+    pdf.rect(
+        border_inset,
+        border_inset,
+        LABEL_WIDTH - (2 * border_inset),
+        LABEL_HEIGHT - (2 * border_inset),
+    )
+    pdf.restoreState()
+
     # QR Code
 
     qr_url = request.build_absolute_uri(
