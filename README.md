@@ -15,25 +15,31 @@ Batt-o-matic is a Django + MariaDB web app for maintaining a rechargeable batter
 </table>
 
 ## Current Features
+- Generic
+  - Modern responsive web interface (Tailwind CSS)
+  - Public read-only access with authenticated editing
+
 - Battery inventory management
-- Charge, Storage, Balance and Discharge event tracking
-- Individual cell voltage recording
-- Charge current logging
-- Connector type support (XT30, XT60, JR/Futaba)
-- Battery weight tracking
-- Automatic charge cycle counting
-- Battery Health indicator
-- Cell voltage history graphs
-- Event type filtering
-- Battery statistics and summary view
-- Modern responsive web interface (Tailwind CSS)
-- Battery Management when logged
-- Public read-only access with authenticated editing
-- QR code generation for each battery
-- Quick Charge workflow via QR sticker
-- Print all battery stickers at once 
-- Edge-TX log format importer for flight logs (Session->Battery>Flights)
-- Unified Tailwind CSS throughout the project
+  - 1S to 6S batteries
+  - Battery Management when logged
+  - QR code generation for each battery
+  - Quick Charge workflow via QR sticker (Scan and fill form)
+  - Print all battery stickers at once 
+  - Battery weight tracking
+  - Connector type support (XT30, XT60, JR/Futaba)
+  - Charge, Storage, Balance and Discharge event tracking
+  - Individual cell voltage recording
+  - Charge current logging
+  - Automatic charge cycle counting
+  - Battery Health indicator§
+  - Cell voltage history graphs
+  - Event type filtering
+  - Battery statistics and summary view
+
+- Edge-TX Flight logs
+  - Edge-TX log format importer for flight logs
+  - Flight session detection Based on RxBt(V) colum for Single Full battery voltage (LiPo, LiHV, Li-Ion, LiFePO)
+  - Full battery voltage thresholds can set on Battery chemistries table on database
   
 ## Technical details
 - Docker-based deployment
