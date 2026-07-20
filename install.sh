@@ -31,11 +31,13 @@ DEFAULT_DB_NAME="battomatic"
 DEFAULT_DB_USER="battomatic"
 DEFAULT_DB_PASS="battomatic"
 
-printf "┌────────────────────────┐\n"
-printf "| %-22s |\n" "Batt-o-matic installer"
-printf "| %-22s |\n" "Server: $FQDN"
-printf "| %-22s |\n" "TZ: $TIMEZONE"
-printf "└────────────────────────┘\n"
+echo " ___   _ _____ _____     ___      __  __   _ _____ ___ ___ "
+echo "| _ ) /_\_   _|_   _|__ / _ \ ___|  \/  | /_\_   _|_ _/ __|"
+echo "| _ \/ _ \| |   | ||___| (_) |___| |\/| |/ _ \| |  | | (__ "
+echo "|___/_/ \_\_|   |_|     \___/    |_|  |_/_/ \_\_| |___\___|"
+echo "==========================================================="
+echo "         B-A-T-T--O--M-A-T-I-C  I-N-S-T-A-L-L-E-R          "
+echo "         Server: $FQDN TZ: $TIMEZONE                       "
 echo
 echo "You can Cancel this script anytime with CTRL+D"
 echo
