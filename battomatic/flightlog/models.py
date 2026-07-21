@@ -102,6 +102,17 @@ class FlightSession(models.Model):
         return first_flight.start_voltage
 
     @property
+    def end_voltage(self):
+        last_flight = self.flights.order_by(
+            "-end_datetime",
+        ).first()
+
+        if last_flight is None:
+            return None
+
+        return last_flight.end_voltage
+
+    @property
     def flight_count(self):
         return self.flights.count()
 

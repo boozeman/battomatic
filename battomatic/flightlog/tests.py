@@ -1317,6 +1317,7 @@ class FlightSessionModelTests(TestCase):
         self.assertIsNone(self.session.first_flight)
         self.assertIsNone(self.session.date)
         self.assertIsNone(self.session.start_voltage)
+        self.assertIsNone(self.session.end_voltage)
         self.assertEqual(self.session.flight_count, 0)
         self.assertEqual(
             self.session.total_flight_time,
@@ -1379,6 +1380,10 @@ class FlightSessionModelTests(TestCase):
         self.assertEqual(
             self.session.start_voltage,
             Decimal("17.30"),
+        )
+        self.assertEqual(
+            self.session.end_voltage,
+            Decimal("15.40"),
         )
 
     def test_session_calculates_flight_summary(self):
