@@ -13,7 +13,7 @@
 
 <div class="card overflow-x-auto">
     <table class="table">
-        <thead><tr><th>Date</th><th>Aircraft</th><th>Battery</th><th>Flights</th><th>Total flight time</th><th>Start voltage</th></tr></thead>
+        <thead><tr><th>Date</th><th>Aircraft</th><th>Battery</th><th>Flights</th><th>Total flight time</th><th>Start voltage</th><th>End voltage</th></tr></thead>
         <tbody>
             {% for session in sessions %}
                 <tr>
@@ -23,6 +23,7 @@
                     <td>{{ session.flight_count }}</td>
                     <td>{{ session.total_flight_time|duration_human }}</td>
                     <td>{% if session.start_voltage != None %}{{ session.start_voltage|floatformat:2 }} V{% else %}—{% endif %}</td>
+                    <td>{% if session.end_voltage != None %}{{ session.end_voltage|floatformat:2 }} V{% else %}—{% endif %}</td>
                 </tr>
             {% empty %}
                 <tr><td colspan="6" class="py-8 text-center text-slate-400">No flight sessions have been imported yet.</td></tr>
