@@ -13,6 +13,14 @@
 
     <title>Batt-o-matic</title>
 
+    <script>
+        (function () {
+            const match = document.cookie.match(/(?:^|; )theme=(light|dark)(?:;|$)/);
+            const theme = match ? match[1] : (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+            document.documentElement.dataset.theme = theme;
+        }());
+    </script>
+
     <link
         rel="stylesheet"
         href="{% static 'css/battomatic.css' %}"
@@ -30,9 +38,9 @@
     ></script>
 </head>
 
-<body class="bg-slate-950 text-slate-100 min-h-screen">
+<body class="min-h-screen">
 
-    <nav class="sticky top-0 z-10 border-b border-slate-800 bg-slate-900/80 backdrop-blur">
+    <nav class="theme-nav sticky top-0 z-10 backdrop-blur">
         <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
             <a href="{% url 'battery_list' %}" class="text-xl font-bold tracking-tight">Batt-o-matic</a>
 
@@ -51,6 +59,11 @@
                     <a class="nav-link" href="{% url 'login' %}">Login</a>
                 {% endif %}
             </div>
+
+            <button class="theme-toggle" type="button" aria-label="Switch color theme" aria-pressed="false">
+                <span class="theme-toggle-icon" aria-hidden="true">☀</span>
+                <span class="theme-toggle-label">Light mode</span>
+            </button>
 
             <details class="relative md:hidden">
                 <summary class="cursor-pointer list-none rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-800">Menu</summary>
@@ -89,5 +102,28 @@
 
     </main>
 
+    <script>
+    (function () {
+        const toggle = document.querySelector('.theme-toggle');
+        if (!toggle) return;
+
+        const updateToggle = function () {
+            const isDark = document.documentElement.dataset.theme === 'dark';
+            toggle.setAttribute('aria-pressed', String(isDark));
+            toggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+            toggle.querySelector('.theme-toggle-icon').textContent = isDark ? '☀' : '☾';
+            toggle.querySelector('.theme-toggle-label').textContent = isDark ? 'Light mode' : 'Dark mode';
+        };
+
+        toggle.addEventListener('click', function () {
+            const theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+            document.documentElement.dataset.theme = theme;
+            document.cookie = 'theme=' + theme + '; Max-Age=31536000; Path=/; SameSite=Lax';
+            updateToggle();
+        });
+
+        updateToggle();
+    }());
+    </script>
 </body>
 </html>
