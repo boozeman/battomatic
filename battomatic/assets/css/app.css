@@ -83,6 +83,7 @@ html[data-theme="light"] .text-amber-300 { color: #b45309; }
 html[data-theme="light"] .text-orange-300 { color: #c2410c; }
 html[data-theme="light"] .text-red-300 { color: #b91c1c; }
 html[data-theme="light"] .errorlist { color: #b91c1c; }
+html[data-theme="light"] .alert-error  { color: #b91c1c; }
 
 @layer components {
   .nav-link {
