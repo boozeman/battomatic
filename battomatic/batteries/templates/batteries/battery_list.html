@@ -5,7 +5,7 @@
     Batteries
   </h1>
 
-  <div class="mt-4 flex flex-wrap gap-2 border-y border-slate-800 py-3">
+  <div class="app-border-subtle mt-4 flex flex-wrap gap-2 border-y py-3">
     {% if user.is_authenticated %}
       <a href="{% url 'battery_create' %}" class="btn px-3 py-1 text-sm">
         New Battery
@@ -23,7 +23,7 @@
 <div class="card overflow-x-auto">
 <table class="table">
 <thead><tr><th>ID</th><th>State</th><th>Chemistry</th><th>Connector</th><th>Purchased</th><th>Manufacturer</th><th>Model</th><th>Cells</th><th>C</th><th>mAh</th><th>Weight</th><th>Events</th></tr></thead>
-<tbody>{% for b in batteries %}<tr><td><a href="{{ b.get_absolute_url }}" class="link">#{{ b.id }}</a></td><td>{{ b.get_state_display }}</td><td>{{ b.get_chemistry_display }}</td><td>{{ b.get_connector_display }}</td><td>{{ b.purchase_date|default:'—' }}</td><td>{{ b.manufacturer|default:'—' }}</td><td>{{ b.model }}</td><td>{{ b.cell_count }}</td><td>{{ b.c_rating|default:'—' }}</td><td>{{ b.capacity_mah }}</td><td>{{ b.weight_g }}</td><td>{{ b.event_count }}</td></tr>{% empty %}<tr><td colspan="10" class="text-center text-slate-400 py-8">No batteries yet. Create one in Django Admin.</td></tr>{% endfor %}</tbody>
+<tbody>{% for b in batteries %}<tr><td><a href="{{ b.get_absolute_url }}" class="link">#{{ b.id }}</a></td><td>{{ b.get_state_display }}</td><td>{{ b.get_chemistry_display }}</td><td>{{ b.get_connector_display }}</td><td>{{ b.purchase_date|default:'—' }}</td><td>{{ b.manufacturer|default:'—' }}</td><td>{{ b.model }}</td><td>{{ b.cell_count }}</td><td>{{ b.c_rating|default:'—' }}</td><td>{{ b.capacity_mah }}</td><td>{{ b.weight_g }}</td><td>{{ b.event_count }}</td></tr>{% empty %}<tr><td colspan="10" class="text-muted py-8 text-center">No batteries yet. Create one in Django Admin.</td></tr>{% endfor %}</tbody>
 </table>
 </div>
 {% endblock %}

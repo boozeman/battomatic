@@ -66,20 +66,20 @@
             </button>
 
             <details class="relative md:hidden">
-                <summary class="cursor-pointer list-none rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-800">Menu</summary>
-                <div class="absolute right-0 mt-2 w-52 rounded-xl border border-slate-700 bg-slate-900 p-2 shadow-xl shadow-black/30">
-                    <a class="nav-link block rounded-lg px-3 py-2 hover:bg-slate-800" href="{% url 'flightlog:session-list' %}">Flight Logs</a>
-                    <a class="nav-link block rounded-lg px-3 py-2 hover:bg-slate-800" href="{% url 'battery_list' %}">Batteries</a>
-                    <a class="nav-link block rounded-lg px-3 py-2 hover:bg-slate-800" href="{% url 'charge_event_list' %}">Charge Events</a>
-                    <a class="nav-link block rounded-lg px-3 py-2 hover:bg-slate-800" href="{% url 'voltage_chart' %}">Voltage Chart</a>
+                <summary class="mobile-menu-button">Menu</summary>
+                <div class="mobile-menu-panel">
+                    <a class="nav-link mobile-menu-link" href="{% url 'flightlog:session-list' %}">Flight Logs</a>
+                    <a class="nav-link mobile-menu-link" href="{% url 'battery_list' %}">Batteries</a>
+                    <a class="nav-link mobile-menu-link" href="{% url 'charge_event_list' %}">Charge Events</a>
+                    <a class="nav-link mobile-menu-link" href="{% url 'voltage_chart' %}">Voltage Chart</a>
                     {% if user.is_authenticated %}
-                        <a class="nav-link block rounded-lg px-3 py-2 hover:bg-slate-800" href="/admin/" target="_blank" rel="noopener">Admin</a>
+                        <a class="nav-link mobile-menu-link" href="/admin/" target="_blank" rel="noopener">Admin</a>
                         <form action="{% url 'logout' %}" method="post">
                             {% csrf_token %}
-                            <button type="submit" class="nav-link block w-full rounded-lg px-3 py-2 text-left hover:bg-slate-800">Logout</button>
+                            <button type="submit" class="nav-link mobile-menu-link w-full text-left">Logout</button>
                         </form>
                     {% else %}
-                        <a class="nav-link block rounded-lg px-3 py-2 hover:bg-slate-800" href="{% url 'login' %}">Login</a>
+                        <a class="nav-link mobile-menu-link" href="{% url 'login' %}">Login</a>
                     {% endif %}
                 </div>
             </details>
@@ -91,7 +91,7 @@
         {% if messages %}
             <div class="space-y-3 mb-6">
                 {% for message in messages %}
-                    <div class="rounded-xl border border-amber-500/50 bg-amber-500/10 px-4 py-3 text-amber-100" role="status">
+                    <div class="alert alert-warning mb-0" role="status">
                         {{ message }}
                     </div>
                 {% endfor %}
