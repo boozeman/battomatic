@@ -20,6 +20,9 @@
         <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Flight time</dt><dd class="text-sm font-semibold sm:col-span-2">{{ flight.flight_time|duration_human }}</dd></div>
         <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Start voltage</dt><dd class="text-sm sm:col-span-2">{{ flight.start_voltage|floatformat:2 }} V</dd></div>
         <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">End voltage</dt><dd class="text-sm sm:col-span-2">{{ flight.end_voltage|floatformat:2 }} V</dd></div>
+        <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Maximum altitude</dt><dd class="text-sm sm:col-span-2">{% if flight.max_altitude_m != None %}{{ flight.max_altitude_m|floatformat:1 }} m{% else %}—{% endif %}</dd></div>
+        <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Maximum distance from start</dt><dd class="text-sm sm:col-span-2">{% if flight.max_distance_m != None %}{{ flight.max_distance_m|floatformat:1 }} m{% else %}—{% endif %}</dd></div>
+        <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Distance flown</dt><dd class="text-sm sm:col-span-2">{% if flight.distance_flown_m != None %}{{ flight.distance_flown_m|floatformat:1 }} m{% else %}—{% endif %}</dd></div>
         <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Source file</dt><dd class="break-all text-sm sm:col-span-2">{{ flight.filename }}</dd></div>
     </dl>
 </div>

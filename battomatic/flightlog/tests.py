@@ -85,7 +85,7 @@ class FlightLogParserTests(SimpleTestCase):
 
         self.assertEqual(result.model, "Flywoo-Firefly-2S")
 
-    def test_splits_log_when_zero_voltage_separates_flights(self):
+    def test_zero_voltage_rows_do_not_split_one_log_into_flights(self):
         csv_content = """Date,Time,RxBt(V)
 2026-07-10,16:39:41.300,17.1
 2026-07-10,16:39:42.300,16.9
@@ -102,7 +102,7 @@ class FlightLogParserTests(SimpleTestCase):
 
         results = parse_flight_logs(uploaded_file)
 
-        self.assertEqual(len(results), 2)
+        self.assertEqual(len(results), 1)
 
         first_flight = results[0]
 
@@ -112,25 +112,43 @@ class FlightLogParserTests(SimpleTestCase):
         )
         self.assertEqual(
             first_flight.end_datetime.isoformat(),
-            "2026-07-10T16:39:43.300000",
-        )
-        self.assertEqual(first_flight.flight_time.total_seconds(), 2)
-        self.assertEqual(str(first_flight.start_voltage), "17.1")
-        self.assertEqual(str(first_flight.end_voltage), "16.8")
-
-        second_flight = results[1]
-
-        self.assertEqual(
-            second_flight.start_datetime.isoformat(),
-            "2026-07-10T16:40:20.300000",
-        )
-        self.assertEqual(
-            second_flight.end_datetime.isoformat(),
             "2026-07-10T16:40:22.300000",
         )
-        self.assertEqual(second_flight.flight_time.total_seconds(), 2)
-        self.assertEqual(str(second_flight.start_voltage), "17.3")
-        self.assertEqual(str(second_flight.end_voltage), "16.9")
+        self.assertEqual(first_flight.flight_time.total_seconds(), 41)
+        self.assertEqual(str(first_flight.start_voltage), "17.1")
+        self.assertEqual(str(first_flight.end_voltage), "16.9")
+
+    def test_calculates_flight_specific_gps_metrics(self):
+        csv_content = """Date,Time,RxBt(V),GPS,GAlt(m),Sats
+2026-07-10,16:39:41.300,17.1,60.000000 24.000000,10,8
+2026-07-10,16:39:42.300,17.0,60.000100 24.000000,15,8
+2026-07-10,16:39:43.300,16.9,60.000000 24.000000,12,8
+"""
+
+        result = parse_flight_log(self.make_file(content=csv_content))
+
+        self.assertEqual(result.max_altitude_m, Decimal("5.0"))
+        self.assertAlmostEqual(float(result.max_distance_m), 11.1, places=1)
+        self.assertAlmostEqual(float(result.distance_flown_m), 22.2, places=1)
+
+    def test_gps_fields_are_optional(self):
+        result = parse_flight_log(self.make_file())
+
+        self.assertIsNone(result.max_altitude_m)
+        self.assertIsNone(result.max_distance_m)
+        self.assertIsNone(result.distance_flown_m)
+
+    def test_ignores_unrealistic_gps_jump(self):
+        csv_content = """Date,Time,RxBt(V),GPS,GAlt(m),Sats
+2026-07-10,16:39:41.300,17.1,60.000000 24.000000,10,8
+2026-07-10,16:39:42.300,17.0,61.000000 25.000000,999,8
+2026-07-10,16:39:43.300,16.9,60.000100 24.000000,15,8
+"""
+
+        result = parse_flight_log(self.make_file(content=csv_content))
+
+        self.assertEqual(result.max_altitude_m, Decimal("5.0"))
+        self.assertAlmostEqual(float(result.distance_flown_m), 11.1, places=1)
 
 
 @override_settings(
@@ -691,7 +709,7 @@ foo,bar
             "CSV-file has missing fields:",
         )
 
-    def test_log_with_zero_voltage_gap_displays_two_flights(self):
+    def test_log_with_zero_voltage_gap_displays_one_flight(self):
         csv_content = """Date,Time,RxBt(V)
 2026-07-10,16:39:41.300,17.1
 2026-07-10,16:39:43.300,16.8
@@ -712,7 +730,7 @@ foo,bar
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             len(response.context["parsed_logs"]),
-            2,
+            1,
         )
 
     def test_duplicate_flights_prevent_session_preview(self):

@@ -161,6 +161,24 @@ class Flight(models.Model):
     filename = models.CharField(
         max_length=255,
     )
+    max_altitude_m = models.DecimalField(
+        max_digits=10,
+        decimal_places=1,
+        null=True,
+        blank=True,
+    )
+    max_distance_m = models.DecimalField(
+        max_digits=10,
+        decimal_places=1,
+        null=True,
+        blank=True,
+    )
+    distance_flown_m = models.DecimalField(
+        max_digits=10,
+        decimal_places=1,
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         ordering = [

@@ -48,6 +48,9 @@ def persist_import_preview(
                 start_voltage=flight_preview.start_voltage,
                 end_voltage=flight_preview.end_voltage,
                 filename=flight_preview.filename,
+                max_altitude_m=flight_preview.max_altitude_m,
+                max_distance_m=flight_preview.max_distance_m,
+                distance_flown_m=flight_preview.distance_flown_m,
             )
 
             created_flight_count += 1

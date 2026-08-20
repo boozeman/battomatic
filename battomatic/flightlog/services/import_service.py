@@ -107,6 +107,9 @@ def save_import_preview(preview: ImportPreview) -> tuple[FlightSession, ...]:
                     start_voltage=flight.start_voltage,
                     end_voltage=flight.end_voltage,
                     filename=flight.filename,
+                    max_altitude_m=flight.max_altitude_m,
+                    max_distance_m=flight.max_distance_m,
+                    distance_flown_m=flight.distance_flown_m,
                 )
                 for flight in session_preview.flights
             ]
