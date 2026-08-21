@@ -21,7 +21,7 @@
     <div class="app-border-subtle border-b px-5 py-4"><h2 class="font-semibold">Flights</h2></div>
     <div class="overflow-x-auto">
         <table class="table">
-            <thead><tr><th>Start</th><th>End</th><th class="text-right">Flight time</th><th class="text-right">Start voltage</th><th class="text-right">End voltage</th><th class="text-right">Max altitude</th><th class="text-right">Max distance</th><th class="text-right">Distance flown</th></tr></thead>
+            <thead><tr><th>Start</th><th>End</th><th class="text-right">Flight time</th><th class="text-right">Start voltage</th><th class="text-right">End voltage</th><th class="text-right">Max altitude</th><th class="text-right">Max distance</th><th class="text-right">Distance flown</th><th class="text-right">Max speed</th><th class="text-right">Average speed</th><th class="text-right">Max satellites</th></tr></thead>
             <tbody>
                 {% for flight in flights %}
                     <tr>
@@ -33,9 +33,12 @@
                         <td class="whitespace-nowrap text-right">{% if flight.max_altitude_m != None %}{{ flight.max_altitude_m|floatformat:1 }} m{% else %}—{% endif %}</td>
                         <td class="whitespace-nowrap text-right">{% if flight.max_distance_m != None %}{{ flight.max_distance_m|floatformat:1 }} m{% else %}—{% endif %}</td>
                         <td class="whitespace-nowrap text-right">{% if flight.distance_flown_m != None %}{{ flight.distance_flown_m|floatformat:1 }} m{% else %}—{% endif %}</td>
+                        <td class="whitespace-nowrap text-right">{% if flight.max_speed_kmh != None %}{{ flight.max_speed_kmh|floatformat:1 }} km/h{% else %}—{% endif %}</td>
+                        <td class="whitespace-nowrap text-right">{% if flight.average_speed_kmh != None %}{{ flight.average_speed_kmh|floatformat:1 }} km/h{% else %}—{% endif %}</td>
+                        <td class="whitespace-nowrap text-right">{% if flight.max_satellites != None %}{{ flight.max_satellites }}{% else %}—{% endif %}</td>
                     </tr>
                 {% empty %}
-                    <tr><td colspan="8" class="text-muted py-10 text-center">No flights in this session.</td></tr>
+                    <tr><td colspan="11" class="text-muted py-10 text-center">No flights in this session.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

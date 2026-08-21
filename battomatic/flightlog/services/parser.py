@@ -37,6 +37,9 @@ class ParsedFlightLog:
     max_altitude_m: Decimal | None = None
     max_distance_m: Decimal | None = None
     distance_flown_m: Decimal | None = None
+    max_speed_kmh: Decimal | None = None
+    average_speed_kmh: Decimal | None = None
+    max_satellites: int | None = None
 
     @property
     def date(self):
@@ -169,17 +172,47 @@ def _parse_gps_row(row):
 
 def calculate_gps_metrics(rows) -> dict:
     points = []
+    speeds = []
+    satellite_counts = []
 
     for row in rows:
         point = _parse_gps_row(row)
         if point is not None:
             points.append(point)
 
+        try:
+            speed = float(row["GSpd(kmh)"])
+            if math.isfinite(speed) and 0 <= speed <= MAX_GPS_SPEED_KMH:
+                speeds.append(speed)
+        except (KeyError, TypeError, ValueError):
+            pass
+
+        try:
+            satellites = int(float(row["Sats"]))
+            if satellites >= 0:
+                satellite_counts.append(satellites)
+        except (KeyError, TypeError, ValueError):
+            pass
+
+    def rounded_decimal(value):
+        return Decimal(str(round(max(0, value), 1)))
+
+    telemetry_metrics = {
+        "max_speed_kmh": (
+            rounded_decimal(max(speeds)) if speeds else None
+        ),
+        "average_speed_kmh": (
+            rounded_decimal(sum(speeds) / len(speeds)) if speeds else None
+        ),
+        "max_satellites": max(satellite_counts) if satellite_counts else None,
+    }
+
     if not points:
         return {
             "max_altitude_m": None,
             "max_distance_m": None,
             "distance_flown_m": None,
+            **telemetry_metrics,
         }
 
     accepted = [points[0]]
@@ -205,13 +238,11 @@ def calculate_gps_metrics(rows) -> dict:
         for first, second in zip(accepted, accepted[1:])
     )
 
-    def rounded_decimal(value):
-        return Decimal(str(round(max(0, value), 1)))
-
     return {
         "max_altitude_m": rounded_decimal(max_altitude),
         "max_distance_m": rounded_decimal(max_distance),
         "distance_flown_m": rounded_decimal(distance_flown),
+        **telemetry_metrics,
     }
 
 

@@ -119,10 +119,10 @@ class FlightLogParserTests(SimpleTestCase):
         self.assertEqual(str(first_flight.end_voltage), "16.9")
 
     def test_calculates_flight_specific_gps_metrics(self):
-        csv_content = """Date,Time,RxBt(V),GPS,GAlt(m),Sats
-2026-07-10,16:39:41.300,17.1,60.000000 24.000000,10,8
-2026-07-10,16:39:42.300,17.0,60.000100 24.000000,15,8
-2026-07-10,16:39:43.300,16.9,60.000000 24.000000,12,8
+        csv_content = """Date,Time,RxBt(V),GPS,GSpd(kmh),GAlt(m),Sats
+2026-07-10,16:39:41.300,17.1,60.000000 24.000000,10.0,10,8
+2026-07-10,16:39:42.300,17.0,60.000100 24.000000,20.0,15,12
+2026-07-10,16:39:43.300,16.9,60.000000 24.000000,15.0,12,10
 """
 
         result = parse_flight_log(self.make_file(content=csv_content))
@@ -130,6 +130,9 @@ class FlightLogParserTests(SimpleTestCase):
         self.assertEqual(result.max_altitude_m, Decimal("5.0"))
         self.assertAlmostEqual(float(result.max_distance_m), 11.1, places=1)
         self.assertAlmostEqual(float(result.distance_flown_m), 22.2, places=1)
+        self.assertEqual(result.max_speed_kmh, Decimal("20.0"))
+        self.assertEqual(result.average_speed_kmh, Decimal("15.0"))
+        self.assertEqual(result.max_satellites, 12)
 
     def test_gps_fields_are_optional(self):
         result = parse_flight_log(self.make_file())
@@ -137,6 +140,22 @@ class FlightLogParserTests(SimpleTestCase):
         self.assertIsNone(result.max_altitude_m)
         self.assertIsNone(result.max_distance_m)
         self.assertIsNone(result.distance_flown_m)
+        self.assertIsNone(result.max_speed_kmh)
+        self.assertIsNone(result.average_speed_kmh)
+        self.assertIsNone(result.max_satellites)
+
+    def test_speed_and_satellites_do_not_require_valid_coordinates(self):
+        csv_content = """Date,Time,RxBt(V),GPS,GSpd(kmh),GAlt(m),Sats
+2026-07-10,16:39:41.300,17.1,,12.4,,7
+2026-07-10,16:39:42.300,17.0,,not-a-speed,,invalid
+2026-07-10,16:39:43.300,16.9,,27.6,,11
+"""
+
+        result = parse_flight_log(self.make_file(content=csv_content))
+
+        self.assertEqual(result.max_speed_kmh, Decimal("27.6"))
+        self.assertEqual(result.average_speed_kmh, Decimal("20.0"))
+        self.assertEqual(result.max_satellites, 11)
 
     def test_ignores_unrealistic_gps_jump(self):
         csv_content = """Date,Time,RxBt(V),GPS,GAlt(m),Sats

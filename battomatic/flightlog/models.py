@@ -179,6 +179,22 @@ class Flight(models.Model):
         null=True,
         blank=True,
     )
+    max_speed_kmh = models.DecimalField(
+        max_digits=6,
+        decimal_places=1,
+        null=True,
+        blank=True,
+    )
+    average_speed_kmh = models.DecimalField(
+        max_digits=6,
+        decimal_places=1,
+        null=True,
+        blank=True,
+    )
+    max_satellites = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         ordering = [

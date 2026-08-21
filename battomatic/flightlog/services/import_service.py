@@ -110,6 +110,9 @@ def save_import_preview(preview: ImportPreview) -> tuple[FlightSession, ...]:
                     max_altitude_m=flight.max_altitude_m,
                     max_distance_m=flight.max_distance_m,
                     distance_flown_m=flight.distance_flown_m,
+                    max_speed_kmh=flight.max_speed_kmh,
+                    average_speed_kmh=flight.average_speed_kmh,
+                    max_satellites=flight.max_satellites,
                 )
                 for flight in session_preview.flights
             ]

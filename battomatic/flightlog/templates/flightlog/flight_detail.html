@@ -23,6 +23,9 @@
         <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Maximum altitude</dt><dd class="text-sm sm:col-span-2">{% if flight.max_altitude_m != None %}{{ flight.max_altitude_m|floatformat:1 }} m{% else %}—{% endif %}</dd></div>
         <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Maximum distance from start</dt><dd class="text-sm sm:col-span-2">{% if flight.max_distance_m != None %}{{ flight.max_distance_m|floatformat:1 }} m{% else %}—{% endif %}</dd></div>
         <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Distance flown</dt><dd class="text-sm sm:col-span-2">{% if flight.distance_flown_m != None %}{{ flight.distance_flown_m|floatformat:1 }} m{% else %}—{% endif %}</dd></div>
+        <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Maximum speed</dt><dd class="text-sm sm:col-span-2">{% if flight.max_speed_kmh != None %}{{ flight.max_speed_kmh|floatformat:1 }} km/h{% else %}—{% endif %}</dd></div>
+        <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Average speed</dt><dd class="text-sm sm:col-span-2">{% if flight.average_speed_kmh != None %}{{ flight.average_speed_kmh|floatformat:1 }} km/h{% else %}—{% endif %}</dd></div>
+        <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Maximum GPS satellites</dt><dd class="text-sm sm:col-span-2">{% if flight.max_satellites != None %}{{ flight.max_satellites }}{% else %}—{% endif %}</dd></div>
         <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Source file</dt><dd class="break-all text-sm sm:col-span-2">{{ flight.filename }}</dd></div>
     </dl>
 </div>

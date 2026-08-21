@@ -51,6 +51,9 @@ def persist_import_preview(
                 max_altitude_m=flight_preview.max_altitude_m,
                 max_distance_m=flight_preview.max_distance_m,
                 distance_flown_m=flight_preview.distance_flown_m,
+                max_speed_kmh=flight_preview.max_speed_kmh,
+                average_speed_kmh=flight_preview.average_speed_kmh,
+                max_satellites=flight_preview.max_satellites,
             )
 
             created_flight_count += 1

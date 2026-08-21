@@ -73,10 +73,10 @@
             <h4 class="mb-3 text-lg font-semibold">Flights</h4>
             <div class="overflow-x-auto">
                 <table class="table">
-                    <thead><tr><th>Start</th><th>End</th><th>Flight time</th><th>Start voltage</th><th>End voltage</th><th>Max altitude</th><th>Max distance</th><th>Distance flown</th><th>Filename</th></tr></thead>
+                    <thead><tr><th>Start</th><th>End</th><th>Flight time</th><th>Start voltage</th><th>End voltage</th><th>Max altitude</th><th>Max distance</th><th>Distance flown</th><th>Max speed</th><th>Average speed</th><th>Max satellites</th><th>Filename</th></tr></thead>
                     <tbody>
                         {% for flight in session.flights %}
-                            <tr><td>{{ flight.start_time|time:"H:i:s" }}</td><td>{{ flight.end_time|time:"H:i:s" }}</td><td>{{ flight.formatted_flight_time }}</td><td>{{ flight.start_voltage }} V</td><td>{{ flight.end_voltage }} V</td><td>{% if flight.max_altitude_m != None %}{{ flight.max_altitude_m }} m{% else %}—{% endif %}</td><td>{% if flight.max_distance_m != None %}{{ flight.max_distance_m }} m{% else %}—{% endif %}</td><td>{% if flight.distance_flown_m != None %}{{ flight.distance_flown_m }} m{% else %}—{% endif %}</td><td>{{ flight.filename }}</td></tr>
+                            <tr><td>{{ flight.start_time|time:"H:i:s" }}</td><td>{{ flight.end_time|time:"H:i:s" }}</td><td>{{ flight.formatted_flight_time }}</td><td>{{ flight.start_voltage }} V</td><td>{{ flight.end_voltage }} V</td><td>{% if flight.max_altitude_m != None %}{{ flight.max_altitude_m }} m{% else %}—{% endif %}</td><td>{% if flight.max_distance_m != None %}{{ flight.max_distance_m }} m{% else %}—{% endif %}</td><td>{% if flight.distance_flown_m != None %}{{ flight.distance_flown_m }} m{% else %}—{% endif %}</td><td>{% if flight.max_speed_kmh != None %}{{ flight.max_speed_kmh }} km/h{% else %}—{% endif %}</td><td>{% if flight.average_speed_kmh != None %}{{ flight.average_speed_kmh }} km/h{% else %}—{% endif %}</td><td>{% if flight.max_satellites != None %}{{ flight.max_satellites }}{% else %}—{% endif %}</td><td>{{ flight.filename }}</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>

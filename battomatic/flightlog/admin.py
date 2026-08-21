@@ -66,6 +66,9 @@ class FlightAdmin(admin.ModelAdmin):
         "flight_time",
         "start_voltage",
         "end_voltage",
+        "max_speed_kmh",
+        "average_speed_kmh",
+        "max_satellites",
         "filename",
     )
     list_filter = (
