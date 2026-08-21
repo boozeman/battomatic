@@ -17,6 +17,7 @@ Batt-o-matic is a Django + MariaDB web app for maintaining a rechargeable batter
 ## Current Features
 - Generic
   - Modern responsive web interface (Tailwind CSS)
+  - Dark/Light mode, selection saved by cookie
   - Public read-only access with authenticated editing
 
 - Battery inventory management
@@ -31,16 +32,22 @@ Batt-o-matic is a Django + MariaDB web app for maintaining a rechargeable batter
   - Individual cell voltage recording
   - Charge current logging
   - Automatic charge cycle counting
-  - Battery Health indicator§
+  - Battery Health indicator
   - Cell voltage history graphs
   - Event type filtering
   - Battery statistics and summary view
 
 - Edge-TX Flight logs
   - Edge-TX log format importer for flight logs
-  - Flight session detection Based on RxBt(V) colum for Single Full battery voltage (LiPo, LiHV, Li-Ion, LiFePO)
-  - If Drone has GPS, There's also Top Speed, Avg Speed, Flight Distance, Max Altitude, distance from start and satellites
+  - Flight session detection Based on RxBt(V) colum for Single Full Battery voltage (LiPo, LiHV, Li-Ion, LiFePO)
   - Full battery voltage thresholds can set on Battery chemistries table on database
+  - If Drone has GPS
+    - Top Speed
+    - Avg Speed
+    - Total flight Distance
+    - Max Altitude
+    - Distance from start
+    - Satellites
   
 ## Technical details
 - Docker-based deployment
