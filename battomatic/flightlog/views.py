@@ -34,6 +34,29 @@ class FlightDayGroup:
     flight_count: int = 0
     total_flight_time: timedelta = field(default_factory=timedelta)
 
+
+@dataclass
+class SessionDetailSummary:
+    date: object
+    flight_count: int
+    total_flight_time: timedelta
+    longest_flight_time: timedelta | None
+    start_voltage: object = None
+    end_voltage: object = None
+    total_distance_m: object = None
+    max_speed_kmh: object = None
+    max_altitude_m: object = None
+    max_satellites: int | None = None
+
+
+def _maximum_present(flights, attribute):
+    values = [
+        getattr(flight, attribute)
+        for flight in flights
+        if getattr(flight, attribute) is not None
+    ]
+    return max(values) if values else None
+
 def _preview_context(*, form, preview=None):
     return {
         "form": form,
@@ -107,12 +130,39 @@ def session_detail(request, pk):
         pk=pk,
     )
 
+    flights = list(session.flights.all())
+    distances = [
+        flight.distance_flown_m
+        for flight in flights
+        if flight.distance_flown_m is not None
+    ]
+    summary = SessionDetailSummary(
+        date=flights[0].start_datetime.date() if flights else None,
+        flight_count=len(flights),
+        total_flight_time=sum(
+            (flight.flight_time for flight in flights),
+            start=timedelta(),
+        ),
+        longest_flight_time=(
+            max(flight.flight_time for flight in flights)
+            if flights
+            else None
+        ),
+        start_voltage=flights[0].start_voltage if flights else None,
+        end_voltage=flights[-1].end_voltage if flights else None,
+        total_distance_m=sum(distances) if distances else None,
+        max_speed_kmh=_maximum_present(flights, "max_speed_kmh"),
+        max_altitude_m=_maximum_present(flights, "max_altitude_m"),
+        max_satellites=_maximum_present(flights, "max_satellites"),
+    )
+
     return render(
         request,
         "flightlog/session_detail.html",
         {
             "session": session,
-            "flights": session.flights.all(),
+            "flights": flights,
+            "summary": summary,
         },
     )
 

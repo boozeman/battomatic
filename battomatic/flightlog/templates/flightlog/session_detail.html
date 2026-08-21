@@ -3,7 +3,9 @@
 
 {% block content %}
 <div class="mb-6">
-    <h1 class="text-3xl font-bold">#{{ session.id }} · {{ session.aircraft_name }}{% if session.date %} · {{ session.date|date:"d.m.Y" }} · {{ session.cell_count }}S · {{ session.chemistry }}{% endif %}</h1>
+    <p class="text-muted mb-1 text-sm font-medium uppercase tracking-wide">Battery session #{{ session.id }}</p>
+    <h1 class="text-3xl font-bold">{{ session.aircraft_name }}</h1>
+    <p class="text-secondary mt-2">{% if summary.date %}{{ summary.date|date:"d.m.Y" }} · {% endif %}{{ session.cell_count }}S {{ session.chemistry }}</p>
     <div class="app-border-subtle mt-4 flex flex-wrap gap-2 border-y py-3">
         {% if user.is_authenticated %}
             <a href="{% url 'flightlog:session-list' %}" class="btn px-3 py-1 text-sm">← Flight sessions</a>
@@ -11,34 +13,38 @@
     </div>
 </div>
 
-<div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    <div class="metric">Flights<span>{{ session.flight_count }}</span></div>
-    <div class="metric">Total flight time<span>{{ session.total_flight_time|duration_human }}</span></div>
-    <div class="metric">Start voltage<span>{% if session.start_voltage != None %}{{ session.start_voltage|floatformat:2 }} V{% else %}—{% endif %}</span></div>
+<div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="metric">Flights<span>{{ summary.flight_count }}</span></div>
+    <div class="metric">Total flight time<span>{{ summary.total_flight_time|duration_human }}</span></div>
+    <div class="metric">Longest flight<span>{{ summary.longest_flight_time|duration_human }}</span></div>
+    <div class="metric">Battery voltage<span>{% if summary.start_voltage != None %}{{ summary.start_voltage|floatformat:2 }} → {{ summary.end_voltage|floatformat:2 }} V{% else %}—{% endif %}</span></div>
+</div>
+
+<div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="metric">Distance flown<span>{% if summary.total_distance_m != None %}{{ summary.total_distance_m|floatformat:0 }} m{% else %}—{% endif %}</span></div>
+    <div class="metric">Top speed<span>{% if summary.max_speed_kmh != None %}{{ summary.max_speed_kmh|floatformat:1 }} km/h{% else %}—{% endif %}</span></div>
+    <div class="metric">Maximum altitude<span>{% if summary.max_altitude_m != None %}{{ summary.max_altitude_m|floatformat:1 }} m{% else %}—{% endif %}</span></div>
+    <div class="metric">Best GPS reception<span>{% if summary.max_satellites != None %}{{ summary.max_satellites }} satellites{% else %}—{% endif %}</span></div>
 </div>
 
 <section class="card overflow-hidden p-0">
     <div class="app-border-subtle border-b px-5 py-4"><h2 class="font-semibold">Flights</h2></div>
     <div class="overflow-x-auto">
         <table class="table">
-            <thead><tr><th>Start</th><th>End</th><th class="text-right">Flight time</th><th class="text-right">Start voltage</th><th class="text-right">End voltage</th><th class="text-right">Max altitude</th><th class="text-right">Max distance</th><th class="text-right">Distance flown</th><th class="text-right">Max speed</th><th class="text-right">Average speed</th><th class="text-right">Max satellites</th></tr></thead>
+            <thead><tr><th>Flight</th><th>Time</th><th class="text-right">Duration</th><th class="text-right">Battery</th><th class="text-right">Distance</th><th class="text-right">Top speed</th><th></th></tr></thead>
             <tbody>
                 {% for flight in flights %}
                     <tr>
-                        <td class="whitespace-nowrap font-medium"><a href="{% url 'flightlog:flight-detail' flight.pk %}" class="link">{{ flight.start_datetime|date:"Y-m-d H:i:s" }}</a></td>
-                        <td class="whitespace-nowrap">{{ flight.end_datetime|date:"Y-m-d H:i:s" }}</td>
+                        <td class="whitespace-nowrap font-medium">#{{ forloop.counter }}</td>
+                        <td class="whitespace-nowrap">{{ flight.start_datetime|date:"H:i:s" }}–{{ flight.end_datetime|date:"H:i:s" }}</td>
                         <td class="whitespace-nowrap text-right font-medium">{{ flight.flight_time|duration_human }}</td>
-                        <td class="whitespace-nowrap text-right">{{ flight.start_voltage|floatformat:2 }} V</td>
-                        <td class="whitespace-nowrap text-right">{{ flight.end_voltage|floatformat:2 }} V</td>
-                        <td class="whitespace-nowrap text-right">{% if flight.max_altitude_m != None %}{{ flight.max_altitude_m|floatformat:1 }} m{% else %}—{% endif %}</td>
-                        <td class="whitespace-nowrap text-right">{% if flight.max_distance_m != None %}{{ flight.max_distance_m|floatformat:1 }} m{% else %}—{% endif %}</td>
+                        <td class="whitespace-nowrap text-right">{{ flight.start_voltage|floatformat:2 }} → {{ flight.end_voltage|floatformat:2 }} V</td>
                         <td class="whitespace-nowrap text-right">{% if flight.distance_flown_m != None %}{{ flight.distance_flown_m|floatformat:1 }} m{% else %}—{% endif %}</td>
                         <td class="whitespace-nowrap text-right">{% if flight.max_speed_kmh != None %}{{ flight.max_speed_kmh|floatformat:1 }} km/h{% else %}—{% endif %}</td>
-                        <td class="whitespace-nowrap text-right">{% if flight.average_speed_kmh != None %}{{ flight.average_speed_kmh|floatformat:1 }} km/h{% else %}—{% endif %}</td>
-                        <td class="whitespace-nowrap text-right">{% if flight.max_satellites != None %}{{ flight.max_satellites }}{% else %}—{% endif %}</td>
+                        <td class="whitespace-nowrap text-right"><a href="{% url 'flightlog:flight-detail' flight.pk %}" class="link font-medium">View details →</a></td>
                     </tr>
                 {% empty %}
-                    <tr><td colspan="11" class="text-muted py-10 text-center">No flights in this session.</td></tr>
+                    <tr><td colspan="7" class="text-muted py-10 text-center">No flights in this session.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

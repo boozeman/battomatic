@@ -3,7 +3,9 @@
 
 {% block content %}
 <div class="mb-6">
-    <h1 class="text-3xl font-bold">Flight details {{ flight.start_datetime|date:"d.m.Y H:i:s" }}</h1>
+    <p class="text-muted mb-1 text-sm font-medium uppercase tracking-wide">Flight details</p>
+    <h1 class="text-3xl font-bold">{{ flight.session.aircraft_name }}</h1>
+    <p class="text-secondary mt-2">{{ flight.start_datetime|date:"d.m.Y" }} · {{ flight.start_datetime|date:"H:i:s" }}–{{ flight.end_datetime|date:"H:i:s" }} · {{ flight.session.cell_count }}S {{ flight.session.chemistry }}</p>
     <div class="app-border-subtle mt-4 flex flex-wrap gap-2 border-y py-3">
         {% if user.is_authenticated %}
             <a href="{% url 'flightlog:session-detail' flight.session.pk %}" class="btn px-3 py-1 text-sm">← {{ flight.session.aircraft_name }} session</a>
@@ -11,22 +13,44 @@
     </div>
 </div>
 
-<div class="card">
-    <dl class="app-divide divide-y">
-        <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Aircraft</dt><dd class="text-sm sm:col-span-2">{{ flight.session.aircraft_name }}</dd></div>
-        <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Battery</dt><dd class="text-sm sm:col-span-2">{{ flight.session.cell_count }}S {{ flight.session.chemistry }}</dd></div>
-        <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Start</dt><dd class="text-sm sm:col-span-2">{{ flight.start_datetime|date:"d.m.Y H:i:s" }}</dd></div>
-        <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">End</dt><dd class="text-sm sm:col-span-2">{{ flight.end_datetime|date:"d.m.Y H:i:s" }}</dd></div>
-        <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Flight time</dt><dd class="text-sm font-semibold sm:col-span-2">{{ flight.flight_time|duration_human }}</dd></div>
-        <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Start voltage</dt><dd class="text-sm sm:col-span-2">{{ flight.start_voltage|floatformat:2 }} V</dd></div>
-        <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">End voltage</dt><dd class="text-sm sm:col-span-2">{{ flight.end_voltage|floatformat:2 }} V</dd></div>
-        <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Maximum altitude</dt><dd class="text-sm sm:col-span-2">{% if flight.max_altitude_m != None %}{{ flight.max_altitude_m|floatformat:1 }} m{% else %}—{% endif %}</dd></div>
-        <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Maximum distance from start</dt><dd class="text-sm sm:col-span-2">{% if flight.max_distance_m != None %}{{ flight.max_distance_m|floatformat:1 }} m{% else %}—{% endif %}</dd></div>
-        <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Distance flown</dt><dd class="text-sm sm:col-span-2">{% if flight.distance_flown_m != None %}{{ flight.distance_flown_m|floatformat:1 }} m{% else %}—{% endif %}</dd></div>
-        <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Maximum speed</dt><dd class="text-sm sm:col-span-2">{% if flight.max_speed_kmh != None %}{{ flight.max_speed_kmh|floatformat:1 }} km/h{% else %}—{% endif %}</dd></div>
-        <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Average speed</dt><dd class="text-sm sm:col-span-2">{% if flight.average_speed_kmh != None %}{{ flight.average_speed_kmh|floatformat:1 }} km/h{% else %}—{% endif %}</dd></div>
-        <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Maximum GPS satellites</dt><dd class="text-sm sm:col-span-2">{% if flight.max_satellites != None %}{{ flight.max_satellites }}{% else %}—{% endif %}</dd></div>
-        <div class="grid gap-1 px-4 py-4 sm:grid-cols-3"><dt class="text-muted text-sm font-medium">Source file</dt><dd class="break-all text-sm sm:col-span-2">{{ flight.filename }}</dd></div>
-    </dl>
+<div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="metric">Flight time<span>{{ flight.flight_time|duration_human }}</span></div>
+    <div class="metric">Top speed<span>{% if flight.max_speed_kmh != None %}{{ flight.max_speed_kmh|floatformat:1 }} km/h{% else %}—{% endif %}</span></div>
+    <div class="metric">Distance flown<span>{% if flight.distance_flown_m != None %}{{ flight.distance_flown_m|floatformat:1 }} m{% else %}—{% endif %}</span></div>
+    <div class="metric">Maximum altitude<span>{% if flight.max_altitude_m != None %}{{ flight.max_altitude_m|floatformat:1 }} m{% else %}—{% endif %}</span></div>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-3">
+    <section class="card">
+        <h2 class="mb-4 text-lg font-semibold">Timing</h2>
+        <dl class="app-divide divide-y">
+            <div class="py-3"><dt class="text-muted text-sm">Start</dt><dd class="mt-1 font-medium">{{ flight.start_datetime|date:"d.m.Y H:i:s" }}</dd></div>
+            <div class="py-3"><dt class="text-muted text-sm">End</dt><dd class="mt-1 font-medium">{{ flight.end_datetime|date:"d.m.Y H:i:s" }}</dd></div>
+            <div class="py-3"><dt class="text-muted text-sm">Duration</dt><dd class="mt-1 font-medium">{{ flight.flight_time|duration_human }}</dd></div>
+        </dl>
+    </section>
+
+    <section class="card">
+        <h2 class="mb-4 text-lg font-semibold">Battery</h2>
+        <dl class="app-divide divide-y">
+            <div class="py-3"><dt class="text-muted text-sm">Configuration</dt><dd class="mt-1 font-medium">{{ flight.session.cell_count }}S {{ flight.session.chemistry }}</dd></div>
+            <div class="py-3"><dt class="text-muted text-sm">Start voltage</dt><dd class="mt-1 font-medium">{{ flight.start_voltage|floatformat:2 }} V</dd></div>
+            <div class="py-3"><dt class="text-muted text-sm">End voltage</dt><dd class="mt-1 font-medium">{{ flight.end_voltage|floatformat:2 }} V</dd></div>
+        </dl>
+    </section>
+
+    <section class="card">
+        <h2 class="mb-4 text-lg font-semibold">GPS telemetry</h2>
+        <dl class="app-divide divide-y">
+            <div class="py-3"><dt class="text-muted text-sm">Average / maximum speed</dt><dd class="mt-1 font-medium">{% if flight.average_speed_kmh != None %}{{ flight.average_speed_kmh|floatformat:1 }}{% else %}—{% endif %} / {% if flight.max_speed_kmh != None %}{{ flight.max_speed_kmh|floatformat:1 }} km/h{% else %}—{% endif %}</dd></div>
+            <div class="py-3"><dt class="text-muted text-sm">Maximum distance from start</dt><dd class="mt-1 font-medium">{% if flight.max_distance_m != None %}{{ flight.max_distance_m|floatformat:1 }} m{% else %}—{% endif %}</dd></div>
+            <div class="py-3"><dt class="text-muted text-sm">Maximum satellites</dt><dd class="mt-1 font-medium">{% if flight.max_satellites != None %}{{ flight.max_satellites }}{% else %}—{% endif %}</dd></div>
+        </dl>
+    </section>
+</div>
+
+<div class="card mt-6">
+    <p class="text-muted text-xs font-medium uppercase tracking-wide">Source file</p>
+    <p class="mt-2 break-all text-sm">{{ flight.filename }}</p>
 </div>
 {% endblock %}
