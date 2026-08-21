@@ -1,4 +1,9 @@
+from collections import OrderedDict
+from dataclasses import dataclass, field
+from datetime import date as date_type, timedelta
+
 from django.contrib import messages
+from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_GET, require_POST
 from django.db import IntegrityError
@@ -9,6 +14,25 @@ from .services.import_service import (
     build_import_preview,
     save_import_preview,
 )
+
+
+@dataclass
+class SessionListItem:
+    session: FlightSession
+    start_datetime: object
+    flight_count: int
+    total_flight_time: timedelta
+    start_voltage: object = None
+    end_voltage: object = None
+
+
+@dataclass
+class FlightDayGroup:
+    date: object
+    aircraft_name: str
+    sessions: list[SessionListItem] = field(default_factory=list)
+    flight_count: int = 0
+    total_flight_time: timedelta = field(default_factory=timedelta)
 
 def _preview_context(*, form, preview=None):
     return {
@@ -23,14 +47,55 @@ def _preview_context(*, form, preview=None):
 @require_GET
 def session_list(request):
     sessions = FlightSession.objects.prefetch_related(
-        "flights",
-    ).all()
+        Prefetch(
+            "flights",
+            queryset=Flight.objects.order_by("start_datetime"),
+        ),
+    )
+    groups_by_key = OrderedDict()
+
+    for session in sessions:
+        flights = list(session.flights.all())
+        date = flights[0].start_datetime.date() if flights else None
+        key = (date, session.aircraft_name)
+        group = groups_by_key.get(key)
+
+        if group is None:
+            group = FlightDayGroup(
+                date=date,
+                aircraft_name=session.aircraft_name,
+            )
+            groups_by_key[key] = group
+
+        total_flight_time = sum(
+            (flight.flight_time for flight in flights),
+            start=timedelta(),
+        )
+        item = SessionListItem(
+            session=session,
+            start_datetime=(flights[0].start_datetime if flights else None),
+            flight_count=len(flights),
+            total_flight_time=total_flight_time,
+            start_voltage=flights[0].start_voltage if flights else None,
+            end_voltage=flights[-1].end_voltage if flights else None,
+        )
+        group.sessions.append(item)
+        group.flight_count += item.flight_count
+        group.total_flight_time += item.total_flight_time
+
+    groups = list(groups_by_key.values())
+    for group in groups:
+        group.sessions.sort(
+            key=lambda item: item.start_datetime or date_type.min,
+        )
+    groups.sort(key=lambda group: group.aircraft_name.casefold())
+    groups.sort(key=lambda group: group.date or date_type.min, reverse=True)
 
     return render(
         request,
         "flightlog/session_list.html",
         {
-            "sessions": sessions,
+            "session_groups": groups,
         },
     )
 

@@ -222,6 +222,16 @@ html[data-theme="light"] {
   .app-border-subtle { border-color: var(--app-border-subtle); }
   .app-divide > :not(:last-child) { border-color: var(--app-border-subtle); }
   .app-surface-muted { background: var(--app-surface-muted); }
+  .flight-day-summary { list-style: none; }
+  .flight-day-summary::-webkit-details-marker { display: none; }
+  .flight-day-summary:hover { background: var(--app-surface-muted); }
+  .flight-day-toggle {
+    @apply flex h-7 w-7 items-center justify-center rounded-full border text-lg font-semibold;
+    border-color: var(--app-border);
+    color: var(--app-link);
+  }
+  .flight-day-toggle::before { content: "+"; }
+  .flight-day-group[open] .flight-day-toggle::before { content: "−"; }
   .text-muted { color: var(--app-text-muted); }
   .text-secondary { color: var(--app-text-secondary); }
   .text-health-excellent { color: var(--app-success); }

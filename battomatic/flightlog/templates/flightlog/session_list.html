@@ -11,24 +11,40 @@
     </div>
 </div>
 
-<div class="card overflow-x-auto">
-    <table class="table">
-        <thead><tr><th>Date</th><th>Aircraft</th><th>Battery</th><th>Flights</th><th>Total flight time</th><th>Start voltage</th><th>End voltage</th></tr></thead>
-        <tbody>
-            {% for session in sessions %}
-                <tr>
-                    <td>{% if session.date %}{{ session.date|date:"d.m.Y" }}{% else %}—{% endif %}</td>
-                    <td><a href="{% url 'flightlog:session-detail' session.pk %}" class="link">{{ session.aircraft_name }}</a></td>
-                    <td>{{ session.cell_count }}S {{ session.chemistry }}</td>
-                    <td>{{ session.flight_count }}</td>
-                    <td>{{ session.total_flight_time|duration_human }}</td>
-                    <td>{% if session.start_voltage != None %}{{ session.start_voltage|floatformat:2 }} V{% else %}—{% endif %}</td>
-                    <td>{% if session.end_voltage != None %}{{ session.end_voltage|floatformat:2 }} V{% else %}—{% endif %}</td>
-                </tr>
-            {% empty %}
-                <tr><td colspan="6" class="text-muted py-8 text-center">No flight sessions have been imported yet.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="space-y-3">
+    {% for group in session_groups %}
+        <details class="flight-day-group card overflow-hidden p-0">
+            <summary class="flight-day-summary grid cursor-pointer items-center gap-3 px-4 py-4 sm:grid-cols-[auto_1fr_auto_auto_auto] sm:px-5">
+                <span class="flight-day-toggle" aria-hidden="true"></span>
+                <span>
+                    <strong class="block">{% if group.date %}{{ group.date|date:"d.m.Y" }}{% else %}No date{% endif %}</strong>
+                    <span class="text-secondary text-sm">{{ group.aircraft_name }}</span>
+                </span>
+                <span class="text-secondary text-sm">{{ group.sessions|length }} battery session{{ group.sessions|length|pluralize }}</span>
+                <span class="text-secondary text-sm">{{ group.flight_count }} flight{{ group.flight_count|pluralize }}</span>
+                <span class="font-semibold">{{ group.total_flight_time|duration_human }}</span>
+            </summary>
+
+            <div class="app-border-subtle overflow-x-auto border-t">
+                <table class="table">
+                    <thead><tr><th>Battery session</th><th>Battery</th><th>Flights</th><th>Total flight time</th><th>Start voltage</th><th>End voltage</th></tr></thead>
+                    <tbody>
+                        {% for item in group.sessions %}
+                            <tr>
+                                <td><a href="{% url 'flightlog:session-detail' item.session.pk %}" class="link font-medium">Session #{{ item.session.pk }}</a></td>
+                                <td>{{ item.session.cell_count }}S {{ item.session.chemistry }}</td>
+                                <td>{{ item.flight_count }}</td>
+                                <td>{{ item.total_flight_time|duration_human }}</td>
+                                <td>{% if item.start_voltage != None %}{{ item.start_voltage|floatformat:2 }} V{% else %}—{% endif %}</td>
+                                <td>{% if item.end_voltage != None %}{{ item.end_voltage|floatformat:2 }} V{% else %}—{% endif %}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </details>
+    {% empty %}
+        <div class="card text-muted py-8 text-center">No flight sessions have been imported yet.</div>
+    {% endfor %}
 </div>
 {% endblock %}

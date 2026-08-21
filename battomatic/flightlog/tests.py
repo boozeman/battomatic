@@ -1651,6 +1651,63 @@ class FlightModelTests(TestCase):
                     filename=flight.filename,
                 )
 
+
+class FlightSessionListViewTests(TestCase):
+    def create_session_with_flight(
+        self,
+        *,
+        aircraft_name,
+        start_datetime,
+        duration_seconds,
+        filename,
+    ):
+        session = FlightSession.objects.create(
+            aircraft_name=aircraft_name,
+            cell_count=4,
+            chemistry="lipo",
+            voltage_threshold=Decimal("16.00"),
+        )
+        Flight.objects.create(
+            session=session,
+            start_datetime=start_datetime,
+            end_datetime=start_datetime + timedelta(seconds=duration_seconds),
+            flight_time=timedelta(seconds=duration_seconds),
+            start_voltage=Decimal("16.80"),
+            end_voltage=Decimal("15.20"),
+            filename=filename,
+        )
+        return session
+
+    def test_groups_sessions_by_date_and_aircraft(self):
+        first_start = datetime(2026, 8, 20, 10, 0)
+        second_start = datetime(2026, 8, 20, 11, 0)
+        self.create_session_with_flight(
+            aircraft_name="Cinelog30",
+            start_datetime=first_start,
+            duration_seconds=180,
+            filename="Cinelog30-2026-08-20-100000.csv",
+        )
+        self.create_session_with_flight(
+            aircraft_name="Cinelog30",
+            start_datetime=second_start,
+            duration_seconds=240,
+            filename="Cinelog30-2026-08-20-110000.csv",
+        )
+
+        response = self.client.get(reverse("flightlog:session-list"))
+
+        self.assertEqual(response.status_code, 200)
+        groups = response.context["session_groups"]
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(groups[0].aircraft_name, "Cinelog30")
+        self.assertEqual(len(groups[0].sessions), 2)
+        self.assertEqual(groups[0].flight_count, 2)
+        self.assertEqual(
+            groups[0].total_flight_time,
+            timedelta(seconds=420),
+        )
+        self.assertContains(response, "<details", html=False)
+
 class FlightPreviewDuplicateTests(SimpleTestCase):
     def make_flight(
         self,
