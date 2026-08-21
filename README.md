@@ -1,4 +1,4 @@
-# Batt-o-matic 1.1
+# Batt-o-matic 1.2
 
 Batt-o-matic is a Django + MariaDB web app for maintaining a rechargeable battery inventory, charge log running and Edge-TX Flightlog Storage on Docker container.
 
@@ -39,6 +39,7 @@ Batt-o-matic is a Django + MariaDB web app for maintaining a rechargeable batter
 - Edge-TX Flight logs
   - Edge-TX log format importer for flight logs
   - Flight session detection Based on RxBt(V) colum for Single Full battery voltage (LiPo, LiHV, Li-Ion, LiFePO)
+  - If Drone has GPS, There's also Top Speed, Avg Speed, Flight Distance, Max Altitude, distance from start and satellites
   - Full battery voltage thresholds can set on Battery chemistries table on database
   
 ## Technical details
