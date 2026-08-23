@@ -15,16 +15,10 @@ class DuplicateFlight:
     already_imported: bool = False
 
 
-def _local_naive_datetime(value: datetime) -> datetime:
-    """Use the CSV's local timestamp when comparing imported flights.
-
-    Parsed CSV timestamps are naive local datetimes. Django returns database
-    datetimes as aware UTC values when ``USE_TZ`` is enabled, so comparing the
-    two directly makes an already imported flight look new until the database
-    unique constraint rejects it during saving.
-    """
-    if timezone.is_aware(value):
-        return timezone.make_naive(value)
+def _database_datetime(value: datetime) -> datetime:
+    """Convert a CSV timestamp as Django does before writing it to the DB."""
+    if timezone.is_naive(value):
+        return timezone.make_aware(value)
 
     return value
 
@@ -47,29 +41,15 @@ def find_duplicate_flights(
     existing_identities = set()
 
     if identities:
-        filenames = {
-            filename
-            for filename, _, _ in identities
-        }
-
-        existing_flights = (
-            Flight.objects
-            .filter(filename__in=filenames)
-            .values_list(
-                "filename",
-                "start_datetime",
-                "end_datetime",
-            )
-        )
-
-        existing_identities = {
-            (
-                filename,
-                _local_naive_datetime(start_datetime),
-                _local_naive_datetime(end_datetime),
-            )
-            for filename, start_datetime, end_datetime in existing_flights
-        }
+        for filename, start_datetime, end_datetime in identities:
+            if Flight.objects.filter(
+                filename=filename,
+                start_datetime=_database_datetime(start_datetime),
+                end_datetime=_database_datetime(end_datetime),
+            ).exists():
+                existing_identities.add(
+                    (filename, start_datetime, end_datetime)
+                )
 
     for flight in flights:
         identity = (
