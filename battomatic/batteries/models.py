@@ -37,10 +37,6 @@ class Battery(models.Model):
 
         charge_events = self.charge_events.prefetch_related("cell_voltages")
 
-        cycles = charge_events.filter(
-            event=ChargeEvent.Event.CHARGE
-        ).count()
-
         max_delta = 0
 
         for event in charge_events:
@@ -59,19 +55,18 @@ class Battery(models.Model):
             if delta > max_delta:
                 max_delta = delta
 
-        if max_delta > 0.025:
-            return "Needs Attention"
-
-        if cycles > 400:
-            return "Aging"
-
-        if max_delta > 0.015:
-            return "Fair"
-
-        if cycles > 200:
-            return "Good"
-
-        return "Excellent"
+        # Classify the largest measured cell voltage difference (in volts).
+        if max_delta <= 0.010:  # 0–10 mV
+            return "Excellent"
+        if max_delta <= 0.020:  # 10–20 mV
+            return "Very good"
+        if max_delta <= 0.030:  # 20–30 mV
+            return "Good / normal"
+        if max_delta <= 0.050:  # 30–50 mV
+            return "Consider balancing and monitoring"
+        if max_delta <= 0.100:  # 50–100 mV
+            return "Clearly unbalanced"
+        return "Concerning — inspect battery and individual cells"
         
     class Meta:
         ordering = ['id']

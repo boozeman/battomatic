@@ -62,15 +62,13 @@
       <div class="metric">Health
         <span class="
           font-bold
-          {% if battery.health == 'Excellent' %}
+          {% if battery.health == 'Excellent' or battery.health == 'Very good' %}
             text-health-excellent
-          {% elif battery.health == 'Good' %}
+          {% elif battery.health == 'Good / normal' %}
             text-health-good
-          {% elif battery.health == 'Fair' %}
+          {% elif battery.health == 'Consider balancing and monitoring' %}
             text-health-fair
-          {% elif battery.health == 'Aging' %}
-            text-health-aging
-          {% elif battery.health == 'Needs Attention' %}
+          {% elif battery.health == 'Clearly unbalanced' or battery.health == 'Concerning — inspect battery and individual cells' %}
             text-health-danger
           {% else %}
             text-secondary
