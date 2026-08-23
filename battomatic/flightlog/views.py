@@ -286,8 +286,7 @@ def import_flight_logs(request):
             None,
             (
                 "One or more flight logs have already been imported. "
-                "No flight logs were saved. "
-                f"Database error: {error}"
+                "No flight logs were saved."
             ),
         )
 
