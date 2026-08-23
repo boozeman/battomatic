@@ -65,13 +65,15 @@ class FlightLogParserTests(SimpleTestCase):
 
         self.assertEqual(result.filename, uploaded_file.name)
         self.assertEqual(result.model, "ModelName")
+        self.assertTrue(timezone.is_aware(result.start_datetime))
         self.assertEqual(
-            result.start_datetime.isoformat(),
-            "2026-07-10T16:39:41.300000",
+            result.start_datetime.time().isoformat(),
+            "16:39:41.300000",
         )
+        self.assertTrue(timezone.is_aware(result.end_datetime))
         self.assertEqual(
-            result.end_datetime.isoformat(),
-            "2026-07-10T16:39:42.300000",
+            result.end_datetime.time().isoformat(),
+            "16:39:42.300000",
         )
         self.assertEqual(result.flight_time.total_seconds(), 1)
         self.assertEqual(str(result.start_voltage), "17.1")
@@ -107,13 +109,15 @@ class FlightLogParserTests(SimpleTestCase):
 
         first_flight = results[0]
 
+        self.assertTrue(timezone.is_aware(first_flight.start_datetime))
         self.assertEqual(
-            first_flight.start_datetime.isoformat(),
-            "2026-07-10T16:39:41.300000",
+            first_flight.start_datetime.time().isoformat(),
+            "16:39:41.300000",
         )
+        self.assertTrue(timezone.is_aware(first_flight.end_datetime))
         self.assertEqual(
-            first_flight.end_datetime.isoformat(),
-            "2026-07-10T16:40:22.300000",
+            first_flight.end_datetime.time().isoformat(),
+            "16:40:22.300000",
         )
         self.assertEqual(first_flight.flight_time.total_seconds(), 41)
         self.assertEqual(str(first_flight.start_voltage), "17.1")
@@ -1901,8 +1905,8 @@ foo,bar
         Flight.objects.create(
             session=session,
             filename=imported.filename,
-            start_datetime=timezone.make_aware(imported.start_datetime),
-            end_datetime=timezone.make_aware(imported.end_datetime),
+            start_datetime=imported.start_datetime,
+            end_datetime=imported.end_datetime,
             flight_time=imported.flight_time,
             start_voltage=imported.start_voltage,
             end_voltage=imported.end_voltage,

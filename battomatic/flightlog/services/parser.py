@@ -8,6 +8,8 @@ from decimal import Decimal
 from pathlib import Path
 from typing import BinaryIO, TextIO
 
+from django.utils import timezone
+
 
 FILENAME_PATTERN = re.compile(
     r"^(?P<model>.+)-"
@@ -75,14 +77,22 @@ def parse_log_datetime(date_value: str, time_value: str) -> datetime:
     value = f"{date_value.strip()} {time_value.strip()}"
 
     try:
-        return datetime.strptime(value, "%Y-%m-%d %H:%M:%S.%f")
+        parsed_datetime = datetime.strptime(
+            value,
+            "%Y-%m-%d %H:%M:%S.%f",
+        )
     except ValueError:
         try:
-            return datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+            parsed_datetime = datetime.strptime(
+                value,
+                "%Y-%m-%d %H:%M:%S",
+            )
         except ValueError as error:
             raise FlightLogParseError(
                 f"Incorrect date- or timeformat: {value}"
             ) from error
+
+    return timezone.make_aware(parsed_datetime)
 
 
 def build_parsed_log(
