@@ -1,3 +1,4 @@
+import logging
 from collections import OrderedDict
 from dataclasses import dataclass, field
 from datetime import date as date_type, timedelta
@@ -14,6 +15,9 @@ from .services.import_service import (
     build_import_preview,
     save_import_preview,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -274,12 +278,16 @@ def import_flight_logs(request):
 
     try:
         created_sessions = save_import_preview(preview)
-    except IntegrityError:
+    except IntegrityError as error:
+        logger.exception(
+            "Flight log import failed because of a database integrity error."
+        )
         form.add_error(
             None,
             (
                 "One or more flight logs have already been imported. "
-                "No flight logs were saved."
+                "No flight logs were saved. "
+                f"Database error: {error}"
             ),
         )
 
