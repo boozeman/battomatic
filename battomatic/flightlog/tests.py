@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.db import IntegrityError, transaction
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse, resolve
+from django.utils import timezone
 
 from .forms import FlightLogUploadForm
 from .models import BatteryChemistry, Flight, FlightSession
@@ -1708,7 +1709,8 @@ class FlightSessionListViewTests(TestCase):
         )
         self.assertContains(response, "<details", html=False)
 
-class FlightPreviewDuplicateTests(SimpleTestCase):
+@override_settings(TIME_ZONE="Europe/Helsinki")
+class FlightPreviewDuplicateTests(TestCase):
     def make_flight(
         self,
         *,
@@ -1781,6 +1783,29 @@ class FlightPreviewDuplicateTests(SimpleTestCase):
 
         self.assertEqual(duplicates, [])
 
+    def test_finds_previously_imported_flight_with_timezone_support(self):
+        flight = self.make_flight()
+        session = FlightSession.objects.create(
+            aircraft_name=flight.model,
+            cell_count=4,
+            chemistry="LiHV",
+            voltage_threshold=Decimal("17.00"),
+        )
+        Flight.objects.create(
+            session=session,
+            filename=flight.filename,
+            start_datetime=timezone.make_aware(flight.start_datetime),
+            end_datetime=timezone.make_aware(flight.end_datetime),
+            flight_time=flight.flight_time,
+            start_voltage=flight.start_voltage,
+            end_voltage=flight.end_voltage,
+        )
+
+        duplicates = find_duplicate_flights([flight])
+
+        self.assertEqual(len(duplicates), 1)
+        self.assertTrue(duplicates[0].already_imported)
+
 class ImportPreviewTests(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -1844,7 +1869,7 @@ foo,bar
         self.assertEqual(len(preview.errors), 1)
         self.assertEqual(preview.duplicates, ())
 
-    def test_duplicate_flights_prevent_sessions(self):
+    def test_duplicate_flights_are_skipped(self):
         first_file = self.make_file()
         second_file = self.make_file()
 
@@ -1857,11 +1882,51 @@ foo,bar
             chemistry=self.lihv,
         )
 
-        self.assertFalse(preview.is_valid)
+        self.assertTrue(preview.is_valid)
         self.assertEqual(preview.flight_count, 2)
+        self.assertEqual(preview.importable_flight_count, 0)
         self.assertEqual(preview.session_count, 0)
         self.assertEqual(len(preview.duplicates), 1)
         self.assertEqual(preview.errors, ())
+
+    @override_settings(TIME_ZONE="Europe/Helsinki")
+    def test_previously_imported_flight_does_not_block_new_flights(self):
+        imported = parse_flight_log(self.make_file())
+        session = FlightSession.objects.create(
+            aircraft_name=imported.model,
+            cell_count=4,
+            chemistry="LiHV",
+            voltage_threshold=Decimal("17.00"),
+        )
+        Flight.objects.create(
+            session=session,
+            filename=imported.filename,
+            start_datetime=timezone.make_aware(imported.start_datetime),
+            end_datetime=timezone.make_aware(imported.end_datetime),
+            flight_time=imported.flight_time,
+            start_voltage=imported.start_voltage,
+            end_voltage=imported.end_voltage,
+        )
+
+        preview = build_import_preview(
+            uploaded_files=[
+                self.make_file(),
+                self.make_file(
+                    name="Mallinimi-2026-07-10-170000.csv",
+                    content="""Date,Time,RxBt(V)
+2026-07-10,17:00:00.000,17.1
+2026-07-10,17:03:00.000,15.8
+""",
+                ),
+            ],
+            cell_count=4,
+            chemistry=self.lihv,
+        )
+
+        self.assertTrue(preview.is_valid)
+        self.assertEqual(len(preview.duplicates), 1)
+        self.assertEqual(preview.session_count, 1)
+        self.assertEqual(preview.importable_flight_count, 1)
 
     def test_parser_error_prevents_sessions(self):
         valid_file = self.make_file()

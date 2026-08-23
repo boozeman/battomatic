@@ -298,7 +298,7 @@ def import_flight_logs(request):
         {
             "created_sessions": created_sessions,
             "created_session_count": len(created_sessions),
-            "created_flight_count": preview.flight_count,
+            "created_flight_count": preview.importable_flight_count,
         },
         status=201,
     )

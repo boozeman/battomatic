@@ -31,11 +31,18 @@ class ImportPreview:
 
     @property
     def is_valid(self) -> bool:
-        return not self.errors and not self.duplicates
+        return not self.errors
 
     @property
     def flight_count(self) -> int:
         return len(self.flights)
+
+    @property
+    def importable_flight_count(self) -> int:
+        return sum(
+            len(session.flights)
+            for session in self.sessions
+        )
 
     @property
     def session_count(self) -> int:
@@ -66,11 +73,29 @@ def build_import_preview(
 
     duplicates = find_duplicate_flights(flights)
 
+    duplicate_identities = {
+        (
+            duplicate.filename,
+            duplicate.start_datetime,
+            duplicate.end_datetime,
+        )
+        for duplicate in duplicates
+    }
+    importable_flights = [
+        flight
+        for flight in flights
+        if (
+            flight.filename,
+            flight.start_datetime,
+            flight.end_datetime,
+        ) not in duplicate_identities
+    ]
+
     sessions = []
 
-    if not errors and not duplicates:
+    if not errors and importable_flights:
         sessions = build_flight_sessions(
-            flights,
+            importable_flights,
             cell_count=cell_count,
             chemistry=chemistry,
         )

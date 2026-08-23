@@ -26,7 +26,7 @@
 {% if duplicate_flights %}
     <div class="alert alert-warning" role="alert">
         <h2 class="font-semibold">Duplicate flight logs detected</h2>
-        <p class="mt-1">One or more selected flight logs have already been imported or appear more than once in the selected files. No flight logs were saved.</p>
+        <p class="mt-1">Previously imported or repeated flights will be skipped. Any remaining new flights can still be saved.</p>
         <ul class="mt-2 list-inside list-disc space-y-1">
             {% for duplicate in duplicate_flights %}
                 <li>
