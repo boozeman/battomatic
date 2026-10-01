@@ -28,6 +28,8 @@ class SessionListItem:
     total_flight_time: timedelta
     start_voltage: object = None
     end_voltage: object = None
+    total_distance_m: object = None
+    max_speed_kmh: object = None
 
 
 @dataclass
@@ -98,6 +100,11 @@ def session_list(request):
             (flight.flight_time for flight in flights),
             start=timedelta(),
         )
+        distances = [
+            flight.distance_flown_m
+            for flight in flights
+            if flight.distance_flown_m is not None
+        ]
         item = SessionListItem(
             session=session,
             start_datetime=(flights[0].start_datetime if flights else None),
@@ -105,6 +112,8 @@ def session_list(request):
             total_flight_time=total_flight_time,
             start_voltage=flights[0].start_voltage if flights else None,
             end_voltage=flights[-1].end_voltage if flights else None,
+            total_distance_m=sum(distances) if distances else None,
+            max_speed_kmh=_maximum_present(flights, "max_speed_kmh"),
         )
         group.sessions.append(item)
         group.flight_count += item.flight_count

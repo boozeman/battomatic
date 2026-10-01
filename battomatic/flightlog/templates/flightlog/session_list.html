@@ -35,7 +35,7 @@
                                 <td>{{ item.session.cell_count }}S {{ item.session.chemistry }}</td>
                                 <td>{{ item.flight_count }}</td>
                                 <td>{{ item.total_flight_time|duration_human }}</td>
-                                <td>{% if item.distance_flown_m != None %}{{ item.distance_flown_m|floatformat:1 }} m{% else %}—{% endif %}</td>
+                                <td>{% if item.total_distance_m != None %}{{ item.total_distance_m|floatformat:0 }} m{% else %}—{% endif %}</td>
                                 <td>{% if item.max_speed_kmh != None %}{{ item.max_speed_kmh|floatformat:1 }} km/h{% else %}—{% endif %}</td>
                             </tr>
                         {% endfor %}
