@@ -20,6 +20,7 @@ class Battery(models.Model):
         XT30 = 'XT30', 'XT-30'
         XT60 = 'XT60', 'XT-60'
         JRFUTABA = 'JR/FUTABA', 'JR/Futaba'
+        BT20 = 'BT2.0', 'BT2.0'
 
     state = models.CharField(max_length=20, choices=State.choices, default=State.IN_USE)
     chemistry = models.CharField(max_length=20, choices=Chemistry.choices) 
