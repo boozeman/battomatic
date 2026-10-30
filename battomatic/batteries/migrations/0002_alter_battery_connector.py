@@ -13,10 +13,13 @@ class Migration(migrations.Migration):
             name='connector',
             field=models.CharField(
                 choices=[
+                    ('BT2.0', 'BT2.0'),
+                    ('PH2.0', 'PH2.0'),
                     ('XT30', 'XT-30'),
                     ('XT60', 'XT-60'),
+                    ('XT90', 'XT-90'),
                     ('JR/FUTABA', 'JR/Futaba'),
-                    ('BT2.0', 'BT2.0'),
+
                 ],
                 default='XT30',
                 max_length=10,

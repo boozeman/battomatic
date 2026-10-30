@@ -17,10 +17,12 @@ class Battery(models.Model):
         NIMH = 'NIMH', 'NiMh'
 
     class Connector(models.TextChoices):
+        BT20 = 'BT2.0', 'BT2.0'
+        PH20 = 'PH2.0', 'PH2.0'
         XT30 = 'XT30', 'XT-30'
         XT60 = 'XT60', 'XT-60'
+        XT90 = 'XT90', 'XT-90'
         JRFUTABA = 'JR/FUTABA', 'JR/Futaba'
-        BT20 = 'BT2.0', 'BT2.0'
 
     state = models.CharField(max_length=20, choices=State.choices, default=State.IN_USE)
     chemistry = models.CharField(max_length=20, choices=Chemistry.choices) 
